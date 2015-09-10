@@ -1,7 +1,8 @@
 import './style.css';
+import React from 'react/addons';
 import initTapEventPlugin from 'react-tap-event-plugin';
 
-import React from 'react/addons';
+import LetterBoard from './LetterBoard.jsx';
 
 initTapEventPlugin();
 
@@ -13,8 +14,8 @@ const Root = React.createClass({
 
   render: function() {
     return (
-      <div>
-        Hello
+      <div style={{display: 'flex', justifyContent: 'center'}}>
+        <LetterBoard />
       </div>
     );
   }
