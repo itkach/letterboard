@@ -57,6 +57,8 @@ const Letter = React.createClass({
 });
 
 
+const LARGE_SMALL_RATIO = 1.28;
+
 const LetterRow = React.createClass({
 
   mixins: [
@@ -65,7 +67,7 @@ const LetterRow = React.createClass({
 
   createItem(char, index) {
     const small = index % 2 === 1,
-          style = {fontSize: small ? '100%' : '200%'};
+          style = {fontSize: small ? '100%' : '' + LARGE_SMALL_RATIO * 100 + '%'};
     return <Letter char={char} style={style} />;
   },
 
