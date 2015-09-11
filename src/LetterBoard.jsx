@@ -1,27 +1,7 @@
 import React from 'react/addons';
+import Reflux from 'reflux';
+import Store from './store';
 
-const LETTERS = 'ABCDEFGHIJKLNOPRSTUVWXYZ';
-
-// Returns a random integer between min (included) and max (excluded)
-const randomInt = (min, max) => {
-  return Math.floor(Math.random() * (max - min)) + min;
-};
-
-const swap = (array, i, j) => {
-  const tmp = array[i];
-  array[i] = array[j];
-  array[j] = tmp;
-};
-
-const randomize = (letterString) => {
-  const result = letterString.split(''),
-        len = result.length;
-  for (let i = 0; i < len - 2; i++) {
-    const randomIndex = randomInt(i, len);
-    swap(result, randomIndex, i);
-  }
-  return result;
-};
 
 const TR = React.createClass({
 
@@ -82,32 +62,12 @@ const LetterRow = React.createClass({
 });
 
 
-const generate = () => {
-  const large = randomize(LETTERS),
-        small = randomize(LETTERS),
-        count = large.length,
-        result = [];
-
-  for (let i = 0; i < count; i++) {
-    result.push(large[i]);
-    result.push(small[i]);
-  }
-  return result;
-};
-
-
 export default React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    React.addons.PureRenderMixin,
+    Reflux.connect(Store)
   ],
-
-  getInitialState() {
-    return {
-      letters: generate(),
-      columnCount: 12
-    };
-  },
 
   render: function() {
 
@@ -123,7 +83,7 @@ export default React.createClass({
     }
 
     return (
-      <table>
+      <table style={{fontSize: this.state.fontSize}}>
         <tbody>
           {rows}
         </tbody>
