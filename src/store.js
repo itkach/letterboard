@@ -2,6 +2,9 @@ import Reflux from 'reflux';
 import Immutable from 'immutable';
 import Actions from './actions';
 import randomize from './randomize';
+import localstorage from './localstorage';
+
+const storage = localstorage('letterboard');
 
 const LETTERS = 'ABCDEFGHIJKLNOPRSTUVWXYZ';
 
@@ -24,11 +27,15 @@ export default Reflux.createStore({
   listenables: Actions,
 
   init() {
-    this._data = {
+
+    const defaults = {
       letters: generate(),
       columnCount: 12,
       fontSize: 20
     };
+
+    const data = storage.get('state', {});
+    this._data = {...defaults, ...data};
   },
 
   getInitialState() {
@@ -41,6 +48,7 @@ export default Reflux.createStore({
 
   set data(newValue) {
     this._data = newValue;
+    storage.set('state', this._data);
     this.trigger(this._data);
   },
 
