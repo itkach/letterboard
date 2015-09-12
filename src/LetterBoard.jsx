@@ -10,8 +10,14 @@ const TR = React.createClass({
   ],
 
   render() {
+
+    const style = {
+      textAlign: 'center',
+      ...this.props.style
+    };
+
     return (
-      <tr style={{textAlign: 'center'}}>
+      <tr style={style}>
         {this.props.children}
       </tr>
     );
@@ -45,15 +51,20 @@ const LetterRow = React.createClass({
     React.addons.PureRenderMixin
   ],
 
-  createItem(char, index) {
+  createItem(char, index, array) {
     const small = index % 2 === 1,
-          style = {fontSize: small ? '100%' : '' + LARGE_SMALL_RATIO * 100 + '%'};
+          style = {
+            fontSize: small ? '100%' : '' + LARGE_SMALL_RATIO * 100 + '%',
+            padding: 0
+          };
+    style.paddingRight = style.paddingLeft = this.props.hSpacing / 2;
+    style.paddingTop = style.paddingBottom = this.props.vSpacing / 2;
     return <Letter char={char} style={style} />;
   },
 
   render() {
     return (
-      <TR>
+      <TR style={this.props.style}>
         {this.props.letters.map(this.createItem)}
       </TR>
     );
@@ -79,7 +90,9 @@ export default React.createClass({
 
     for (let i = 0; i < rowCount; i++) {
       const rowLetters = letters.slice(i * columnCount, (i + 1) * columnCount);
-      rows.push(<LetterRow letters={rowLetters} />);
+      rows.push(<LetterRow letters={rowLetters}
+                           hSpacing={this.state.letterHSpacing}
+                           vSpacing={this.state.letterVSpacing} />);
     }
 
     return (

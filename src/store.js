@@ -31,7 +31,9 @@ export default Reflux.createStore({
     const defaults = {
       letters: generate(),
       columnCount: 12,
-      fontSize: 20
+      fontSize: 20,
+      letterHSpacing: 0,
+      letterVSpacing: 0
     };
 
     const data = storage.get('state', {});
@@ -58,6 +60,15 @@ export default Reflux.createStore({
 
   onSetFontSize(fontSize) {
     this.data = {...this.data, fontSize};
+  },
+
+  onSetLetterVSpacing(letterVSpacing) {
+    this.data = {...this.data, letterVSpacing};
+  },
+
+  onSetLetterHSpacing(letterHSpacing) {
+    this.data = {...this.data, letterHSpacing};
   }
+
 
 });

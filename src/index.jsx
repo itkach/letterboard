@@ -41,6 +41,16 @@ const Root = React.createClass({
     Actions.regenerate();
   },
 
+  changeLetterVSpacing(e) {
+    const fontSize = parseFloat(e.target.value);
+    Actions.setLetterVSpacing(fontSize);
+  },
+
+  changeLetterHSpacing(e) {
+    const fontSize = parseFloat(e.target.value);
+    Actions.setLetterHSpacing(fontSize);
+  },
+
   changeFontSize(e) {
     const fontSize = parseFloat(e.target.value);
     Actions.setFontSize(fontSize);
@@ -48,15 +58,10 @@ const Root = React.createClass({
 
   render: function() {
     return (
-      <div>
+      <div >
         <Toolbar>
           <ToolbarGroup key={0} float="left">
-            <ToolbarTitle text="Font Size" />
-            <TextField type="number"
-                       value={this.state.fontSize}
-                       onChange={this.changeFontSize}
-                       min="1"
-                       style={{width: '4rem'}} />
+            <ToolbarTitle text="Anonymous" />
           </ToolbarGroup>
           <ToolbarGroup key={1} float="right">
             <FontIcon className="material-icons"
@@ -68,6 +73,28 @@ const Root = React.createClass({
           <LetterBoard />
         </div>
 
+        <div style={{position: 'fixed', bottom: 0}}>
+          <TextField type="number"
+                     floatingLabelText="Font Size"
+                     value={this.state.fontSize}
+                     onChange={this.changeFontSize}
+                     min="1"/>
+
+          <TextField type="number"
+                     floatingLabelText="H Spacing"
+                     value={this.state.letterHSpacing}
+                     onChange={this.changeLetterHSpacing}
+                     min="1"/>
+
+
+          <TextField type="number"
+                     floatingLabelText="V Spacing"
+                     value={this.state.letterVSpacing}
+                     onChange={this.changeLetterVSpacing}
+                     min="1"/>
+
+
+        </div>
       </div>
     );
   }
