@@ -15,7 +15,7 @@ import {
   Toolbar, ToolbarGroup, FontIcon,
   DropDownIcon, DropDownMenu, RaisedButton,
   ToolbarTitle, ToolbarSeparator,
-  TextField, IconButton, FlatButton, Dialog
+  TextField, IconButton, FlatButton, Dialog, SelectField
 } from 'material-ui';
 
 initTapEventPlugin();
@@ -27,6 +27,12 @@ function getAbsoluteURL(url) {
   a.href = url;
   return a.href;
 }
+
+const FONT_FAMILIES = [
+  {payload: 'serif', text: 'Serif'},
+  {payload: 'sans-serif', text: 'Sans Serif'},
+  {payload: 'monospace', text: 'Monospace'}
+];
 
 const Root = React.createClass({
 
@@ -62,6 +68,10 @@ const Root = React.createClass({
   changeFontSize(e) {
     const fontSize = parseFloat(e.target.value);
     Actions.setFontSize(fontSize);
+  },
+
+  changeFontFamily(e, selectedIndex, menuItem) {
+    Actions.setFontFamily(menuItem.payload);
   },
 
   getHandBoardURL() {
@@ -120,13 +130,21 @@ const Root = React.createClass({
         </div>
 
         <div style={{position: 'fixed',
-                     bottom: 0,
+                     bottom: 5,
                      display: 'flex',
                      left: 5,
                      right: 5,
                      alignItems: 'center',
                      justifyContent: 'space-between'}}>
           <div>
+
+            <SelectField floatingLabelText="Font Family"
+                         value={this.state.fontFamily}
+                         onChange={this.changeFontFamily}
+                         menuItems={FONT_FAMILIES}
+                         style={{marginLeft: 5, marginRight: 5}}
+            />
+
             <TextField type="number"
                        floatingLabelText="Font Size"
                        value={this.state.fontSize}
@@ -134,6 +152,7 @@ const Root = React.createClass({
                        min="1"
                        style={{marginLeft: 5, marginRight: 5}}
             />
+
 
             <TextField type="number"
                        floatingLabelText="H Spacing"
@@ -151,11 +170,14 @@ const Root = React.createClass({
                        min="1"
                        style={{marginLeft: 5, marginRight: 5}}
             />
+
           </div>
 
-          <FlatButton label="Hand Board"
-                      secondary={true}
-                      onTouchTap={this.showHandBoardQR} />
+          <div style={{flexGrow: 1, flexShrink: 0}}>
+            <FlatButton label="Hand Board"
+                        secondary={true}
+                        onTouchTap={this.showHandBoardQR} />
+          </div>
 
         </div>
       </div>
