@@ -131,20 +131,26 @@ const Root = React.createClass({
                        floatingLabelText="Font Size"
                        value={this.state.fontSize}
                        onChange={this.changeFontSize}
-                       min="1"/>
+                       min="1"
+                       style={{marginLeft: 5, marginRight: 5}}
+            />
 
             <TextField type="number"
                        floatingLabelText="H Spacing"
                        value={this.state.letterHSpacing}
                        onChange={this.changeLetterHSpacing}
-                       min="1"/>
+                       min="1"
+                       style={{marginLeft: 5, marginRight: 5}}
+            />
 
 
             <TextField type="number"
                        floatingLabelText="V Spacing"
                        value={this.state.letterVSpacing}
                        onChange={this.changeLetterVSpacing}
-                       min="1"/>
+                       min="1"
+                       style={{marginLeft: 5, marginRight: 5}}
+            />
           </div>
 
           <FlatButton label="Hand Board"
