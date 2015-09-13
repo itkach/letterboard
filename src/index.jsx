@@ -8,17 +8,25 @@ import LetterBoard from './LetterBoard.jsx';
 
 import Actions from './actions';
 import Store from './store';
+import QRCode from './QRCode.jsx';
+
 
 import {
   Toolbar, ToolbarGroup, FontIcon,
   DropDownIcon, DropDownMenu, RaisedButton,
   ToolbarTitle, ToolbarSeparator,
-  TextField, IconButton, FlatButton
+  TextField, IconButton, FlatButton, Dialog
 } from 'material-ui';
 
 initTapEventPlugin();
 
 const ThemeManager = new mui.Styles.ThemeManager();
+
+function getAbsoluteURL(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  return a.href;
+}
 
 const Root = React.createClass({
 
@@ -56,9 +64,47 @@ const Root = React.createClass({
     Actions.setFontSize(fontSize);
   },
 
+  getHandBoardURL() {
+    return getAbsoluteURL('./#/handboard/' + this.state.letters.join(''));
+  },
+
+  showHandBoardQR() {
+    this.setState({showQR: true});
+  },
+
+  hideHandBoardQR() {
+    this.setState({showQR: false});
+  },
+
   render: function() {
+
+    let qrCodeDialog = null;
+    if (this.state.showQR) {
+      const url = this.getHandBoardURL();
+      const actions = [
+        (
+          <FlatButton label="Close"
+                      key="btnClose"
+                      secondary={true}
+                      onTouchTap={this.hideHandBoardQR} />
+        )
+      ];
+
+      qrCodeDialog = (
+        <Dialog openImmediately={true}
+                actions={actions}
+                modal={true}>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+              <QRCode size={200} text={url} />
+              <a href={url} target="_blank">Open</a>
+          </div>
+        </Dialog>
+      );
+    }
+
     return (
       <div >
+        {qrCodeDialog}
         <Toolbar>
           <ToolbarGroup key={0} float="left">
             <ToolbarTitle text="Anonymous" />
@@ -73,26 +119,37 @@ const Root = React.createClass({
           <LetterBoard />
         </div>
 
-        <div style={{position: 'fixed', bottom: 0}}>
-          <TextField type="number"
-                     floatingLabelText="Font Size"
-                     value={this.state.fontSize}
-                     onChange={this.changeFontSize}
-                     min="1"/>
+        <div style={{position: 'fixed',
+                     bottom: 0,
+                     display: 'flex',
+                     left: 5,
+                     right: 5,
+                     alignItems: 'center',
+                     justifyContent: 'space-between'}}>
+          <div>
+            <TextField type="number"
+                       floatingLabelText="Font Size"
+                       value={this.state.fontSize}
+                       onChange={this.changeFontSize}
+                       min="1"/>
 
-          <TextField type="number"
-                     floatingLabelText="H Spacing"
-                     value={this.state.letterHSpacing}
-                     onChange={this.changeLetterHSpacing}
-                     min="1"/>
+            <TextField type="number"
+                       floatingLabelText="H Spacing"
+                       value={this.state.letterHSpacing}
+                       onChange={this.changeLetterHSpacing}
+                       min="1"/>
 
 
-          <TextField type="number"
-                     floatingLabelText="V Spacing"
-                     value={this.state.letterVSpacing}
-                     onChange={this.changeLetterVSpacing}
-                     min="1"/>
+            <TextField type="number"
+                       floatingLabelText="V Spacing"
+                       value={this.state.letterVSpacing}
+                       onChange={this.changeLetterVSpacing}
+                       min="1"/>
+          </div>
 
+          <FlatButton label="Hand Board"
+                      secondary={true}
+                      onTouchTap={this.showHandBoardQR} />
 
         </div>
       </div>

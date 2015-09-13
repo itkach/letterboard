@@ -37,7 +37,7 @@ export default Reflux.createStore({
     };
 
     const data = storage.get('state', {});
-    this._data = {...defaults, ...data};
+    this.data = {...defaults, ...data};
   },
 
   getInitialState() {

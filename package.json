@@ -13,7 +13,8 @@
     "material-ui": "^0.11.0",
     "react": "^0.13.3",
     "react-tap-event-plugin": "^0.1.7",
-    "reflux": "^0.2.12"
+    "reflux": "^0.2.12",
+    "yaqrcode": "^0.2.1"
   },
   "devDependencies": {
     "babel-core": "^5.8.20",

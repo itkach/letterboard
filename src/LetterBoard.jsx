@@ -51,7 +51,7 @@ const LetterRow = React.createClass({
     React.addons.PureRenderMixin
   ],
 
-  createItem(char, index, array) {
+  createItem(char, index) {
     const small = index % 2 === 1,
           style = {
             fontSize: small ? '100%' : '' + LARGE_SMALL_RATIO * 100 + '%',
@@ -59,7 +59,7 @@ const LetterRow = React.createClass({
           };
     style.paddingRight = style.paddingLeft = this.props.hSpacing / 2;
     style.paddingTop = style.paddingBottom = this.props.vSpacing / 2;
-    return <Letter char={char} style={style} />;
+    return <Letter key={index} char={char} style={style} />;
   },
 
   render() {
@@ -90,7 +90,8 @@ export default React.createClass({
 
     for (let i = 0; i < rowCount; i++) {
       const rowLetters = letters.slice(i * columnCount, (i + 1) * columnCount);
-      rows.push(<LetterRow letters={rowLetters}
+      rows.push(<LetterRow key={i}
+                           letters={rowLetters}
                            hSpacing={this.state.letterHSpacing}
                            vSpacing={this.state.letterVSpacing} />);
     }
