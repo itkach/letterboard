@@ -100,7 +100,11 @@ const CurrentLetter = React.createClass({
     React.addons.PureRenderMixin
   ],
 
-  style: {
+  styleSmall: {
+    fontSize: '15vw'
+  },
+
+  styleLarge: {
     fontSize: '20vw'
   },
 
@@ -109,14 +113,20 @@ const CurrentLetter = React.createClass({
     const {char, index} = this.props.letter || {},
           small = (index % 2) === 1;
 
-    const style = {
-      ...this.style,
-      textDecoration: small ? 'underline' : 'overline'
+    const styleSmall = {
+      ...this.styleSmall,
+      color: small ? 'black' : 'lightgrey'
+    };
+
+    const styleLarge = {
+      ...this.styleLarge,
+      color: !small ? 'black' : 'lightgrey'
     };
 
     return (
-      <div style={style} onTouchTap={this.props.onTouchTap}>
-        {char || '\u00A0'}
+      <div>
+        <span style={styleSmall}>{char}</span>
+        <span style={styleLarge}>{char}</span>
       </div>
     );
   }
