@@ -36,10 +36,11 @@ const Letter = React.createClass({
     return (
       <td style={{verticalAlign: 'baseline',
                   cursor: this.props.onTouchTap ? 'pointer' : null,
-                  opacity: shown ? 1 : 0,
                   ...this.props.style}}
           onTouchTap={this.props.onTouchTap}>
-        {char}
+        <div style={{opacity: shown ? 1 : 0}}>
+          {char}
+        </div>
       </td>
     );
   }
