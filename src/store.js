@@ -1,5 +1,4 @@
 import Reflux from 'reflux';
-import Immutable from 'immutable';
 import Actions from './actions';
 import randomize from './randomize';
 import localstorage from './localstorage';
