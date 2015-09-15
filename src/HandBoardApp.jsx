@@ -58,7 +58,7 @@ const Store = Reflux.createStore({
       remainingLetters[i] = {char: letters[i], index: i};
     }
     for (let i = 0; i < count; i++) {
-      placedLetters[i] = '';
+      placedLetters[i] = {char: letters[i], shown: false};
     }
     this.data = {...this.data, ...otherData, letters, remainingLetters, placedLetters};
     Actions.nextLetter();
@@ -84,7 +84,7 @@ const Store = Reflux.createStore({
           index = row * columnCount + col;
     console.debug('Selected index', index, 'should be', currentLetter.index);
     if (currentLetter.index === index) {
-      placedLetters[index] = currentLetter.char;
+      placedLetters[index] = {char: currentLetter.char, shown: true};
       this.data = {...this.data,
                    currentLetter: null,
                    placedLetters};
@@ -158,7 +158,7 @@ export default React.createClass({
     const progress = 100 * (this.state.letters.length - this.state.remainingLetters.length) / this.state.letters.length;
 
     return (
-      <div>
+      <div style={{margin: '0.5rem'}}>
         <div style={{textAlign: 'center'}}>
           <CurrentLetter letter={this.state.currentLetter} />
         </div>

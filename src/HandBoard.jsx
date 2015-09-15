@@ -30,12 +30,16 @@ const Letter = React.createClass({
   ],
 
   render() {
+
+    const {char, shown} = this.props.letter;
+
     return (
       <td style={{verticalAlign: 'baseline',
                   cursor: this.props.onTouchTap ? 'pointer' : null,
+                  opacity: shown ? 1 : 0,
                   ...this.props.style}}
           onTouchTap={this.props.onTouchTap}>
-        {this.props.char || '\u00A0'}
+        {char}
       </td>
     );
   }
@@ -57,8 +61,8 @@ const LetterRow = React.createClass({
     }
   },
 
-  createItem(char, index) {
-    console.debug('create item for char', char, 'at index', index);
+  createItem(letter, index) {
+    console.debug('create item for char', letter.char, 'at index', index);
     const small = index % 2 === 1,
           style = {
             fontSize: small ? '100%' : '' + LARGE_SMALL_RATIO * 100 + '%',
@@ -67,7 +71,7 @@ const LetterRow = React.createClass({
           };
     style.paddingRight = style.paddingLeft = this.props.hSpacing / 2;
     style.paddingTop = style.paddingBottom = this.props.vSpacing / 2;
-    return <Letter key={index} char={char}
+    return <Letter key={index} letter={letter}
                    style={style}
                    onTouchTap={this.onLetterTap.bind(this, index)} />;
   },
@@ -122,7 +126,7 @@ export default React.createClass({
 
     return (
       <table style={{fontFamily: this.props.fontFamily,
-                     borderSpacing: 'collapse',
+                     borderCollapse: 'collapse',
                      width: '100%', fontSize: '5vw'}}>
         <tbody>
           {rows}
