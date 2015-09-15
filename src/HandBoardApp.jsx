@@ -60,7 +60,10 @@ const Store = Reflux.createStore({
     for (let i = 0; i < count; i++) {
       placedLetters[i] = {char: letters[i], shown: false};
     }
-    this.data = {...this.data, ...otherData, letters, remainingLetters, placedLetters};
+
+    const startTime = new Date().getTime();
+    this.data = {...this.data, ...otherData, letters,
+                 remainingLetters, placedLetters, startTime};
     Actions.nextLetter();
   },
 
@@ -72,7 +75,10 @@ const Store = Reflux.createStore({
           randomIndex = randomInt(0, remainingLetters.length),
           [currentLetter] = remainingLetters.splice(randomIndex, 1);
     console.debug('Next letter is', currentLetter);
-    this.data = {...this.data, currentLetter, remainingLetters};
+
+    const endTime = (this.data.remainingLetters.length === 0  && !currentLetter) ? new Date().getTime() : null;
+
+    this.data = {...this.data, currentLetter, remainingLetters, endTime};
   },
 
   onPlaceLetter(row, col) {
@@ -133,6 +139,54 @@ const CurrentLetter = React.createClass({
 });
 
 
+const WellDone = React.createClass({
+
+  mixins: [
+    React.addons.PureRenderMixin
+  ],
+
+  style: {
+    fontSize: '15vw',
+    color: 'green'
+  },
+
+  render: function() {
+
+    if (!this.props.done) {
+      return null;
+    }
+
+    return (
+      <div style={this.style}>
+        Well done!
+      </div>
+    );
+  }
+});
+
+const Elapsed = React.createClass({
+
+  mixins: [
+    React.addons.PureRenderMixin
+  ],
+
+  render: function() {
+
+    if (!this.props.start || !this.props.end) {
+      return null;
+    }
+
+    const duration = Math.round((this.props.end - this.props.start) / (1000 * 60));
+
+    return (
+      <div>
+        Done in {duration} min
+      </div>
+    );
+  }
+});
+
+
 export default React.createClass({
 
   mixins: [
@@ -155,11 +209,15 @@ export default React.createClass({
 
   render: function() {
 
-    const progress = 100 * (this.state.letters.length - this.state.remainingLetters.length) / this.state.letters.length;
+    const progress = 100 * (this.state.letters.length - (
+      this.state.remainingLetters.length +
+      (this.state.currentLetter ? 1 : 0))) / this.state.letters.length;
 
     return (
       <div style={{margin: '0.5rem'}}>
         <div style={{textAlign: 'center'}}>
+          <WellDone done={this.state.endTime} />
+          <Elapsed start={this.state.startTime} end={this.state.endTime} />
           <CurrentLetter letter={this.state.currentLetter} />
         </div>
         <div>
@@ -172,6 +230,7 @@ export default React.createClass({
         </div>
         <div style={{height: '0.5rem',
                      width: ''+progress+'%',
+                     marginTop: '0.5rem',
                      border: 'thin solid grey',
                      backgroundColor: 'green'}}>
         </div>
