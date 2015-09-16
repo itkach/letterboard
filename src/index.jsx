@@ -30,12 +30,18 @@ const Root = React.createClass({
 
     const hash = window.location.hash;
     if (hash) {
-      const data = JSON.parse(hash.substr(1));
-      if (data) {
-        const {app, ...rest} = data;
-        if (app === 'handboard') {
-          return <HandBoardApp initialData={rest}/>;
+      console.debug('hash', hash);
+      try {
+        const data = JSON.parse(hash.substr(1));
+        if (data) {
+          const {app, ...rest} = data;
+          if (app === 'handboard') {
+            return <HandBoardApp initialData={rest}/>;
+          }
         }
+      }
+      catch (ex) {
+        console.error(ex);
       }
     }
 
