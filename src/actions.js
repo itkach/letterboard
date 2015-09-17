@@ -5,5 +5,6 @@ export default Reflux.createActions([
   'setFontFamily',
   'setLetterVSpacing',
   'setLetterHSpacing',
+  'setLetterSet',
   'regenerate'
 ]);

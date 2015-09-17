@@ -23,11 +23,6 @@ function getAbsoluteURL(url) {
   return a.href;
 }
 
-const FONT_FAMILIES = [
-  {payload: 'serif', text: 'Serif'},
-  {payload: 'sans-serif', text: 'Sans Serif'},
-  {payload: 'monospace', text: 'Monospace'}
-];
 
 export default React.createClass({
 
@@ -58,6 +53,10 @@ export default React.createClass({
   changeFontFamily(e) {
     console.log('changeFontFamily', e.target.value);
     Actions.setFontFamily(e.target.value);
+  },
+
+  changeLetterSet(e) {
+    Actions.setLetterSet(e.target.value);
   },
 
   getHandBoardURL() {
@@ -109,17 +108,16 @@ export default React.createClass({
 
         <Navbar brand="Anonymous" fluid>
           <Nav>
-            <form className="navbar-form navbar-left" role="search">
+            <form className="navbar-form navbar-left">
               <div className="form-group">
                 <Input type="select"
                        label={<Glyphicon glyph="font" />}
                        value={this.state.fontFamily}
                        onChange={this.changeFontFamily}
-                       style={{marginLeft: 8, marginRight: 5}}
-                       >
-                <option value="sans-serif">Sans Serif</option>
-                <option value="serif">Serif</option>
-                <option value="monospace">Monospace</option>
+                       style={{marginLeft: 8, marginRight: 5}} >
+                  <option value="sans-serif">Sans Serif</option>
+                  <option value="serif">Serif</option>
+                  <option value="monospace">Monospace</option>
                 </Input>
 
                 <Input type="number"
@@ -151,7 +149,18 @@ export default React.createClass({
             </form>
 
           </Nav>
-          <Nav right bsStyle="tabs" onSelect={this.handleNavSelection}>
+          <Nav right onSelect={this.handleNavSelection}>
+            <form className="navbar-form navbar-left">
+                <Input type="select"
+                       value={this.state.letterSet}
+                       onChange={this.changeLetterSet}
+                       style={{marginLeft: 8, marginRight: 5}}
+                       >
+                {Store.LETTER_SETS.map(
+                  s => <option key={s} value={s}>{s.substr(0, 6)}</option>
+                 )}
+                </Input>
+            </form>
             <NavItem eventKey={1}><Glyphicon glyph="qrcode" /></NavItem>
           </Nav>
         </Navbar>

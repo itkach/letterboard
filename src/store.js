@@ -7,9 +7,9 @@ const storage = localstorage('letterboard');
 
 const LETTERS = 'ABCDEFGHIJKLNOPRSTUVWXYZ';
 
-const generate = () => {
-  const large = randomize(LETTERS),
-        small = randomize(LETTERS),
+const generate = (letterSet=LETTERS) => {
+  const large = randomize(letterSet),
+        small = randomize(letterSet),
         count = large.length,
         result = [];
 
@@ -23,12 +23,23 @@ const generate = () => {
 
 export default Reflux.createStore({
 
+  LETTER_SETS: [
+  'ABCDEFGHIJKLNOPRSTUVWXYZ',
+  'АБВГДЕЖЗИКЛМНОПРСТУФХЧШЯ',
+  'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
+  'ԺԻԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՍՎՐՑՒՔՖ',
+  'オカキクケコシスセソタテトナニヌノヒフヘホマミヨ'
+  ],
+
   listenables: Actions,
 
   init() {
 
+    const letterSet = this.LETTER_SETS[0];
+
     const defaults = {
-      letters: generate(),
+      letters: generate(letterSet),
+      letterSet,
       columnCount: 12,
       fontSize: 20,
       letterHSpacing: 0,
@@ -72,6 +83,11 @@ export default Reflux.createStore({
 
   onSetLetterHSpacing(letterHSpacing) {
     this.data = {...this.data, letterHSpacing};
+  },
+
+  onSetLetterSet(letterSet) {
+    const letters = generate(letterSet);
+    this.data = {...this.data, letterSet, letters};
   }
 
 
