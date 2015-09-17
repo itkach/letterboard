@@ -1,30 +1,18 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './style.css';
 import React from 'react/addons';
 import initTapEventPlugin from 'react-tap-event-plugin';
-import  mui from 'material-ui';
 
 import LetterBoardApp from './LetterBoardApp.jsx';
 import HandBoardApp from './HandBoardApp.jsx';
 
 initTapEventPlugin();
 
-const ThemeManager = new mui.Styles.ThemeManager();
-
 const Root = React.createClass({
 
   mixins: [
     React.addons.PureRenderMixin
   ],
-
-  childContextTypes: {
-    muiTheme: React.PropTypes.object
-  },
-
-  getChildContext() {
-    return {
-      muiTheme: ThemeManager.getCurrentTheme()
-    };
-  },
 
   render: function() {
 

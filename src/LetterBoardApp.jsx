@@ -6,13 +6,15 @@ import Actions from './actions';
 import Store from './store';
 import QRCode from './QRCode.jsx';
 
-
 import {
-  Toolbar, ToolbarGroup, FontIcon,
-  DropDownIcon, DropDownMenu, RaisedButton,
-  ToolbarTitle, ToolbarSeparator,
-  TextField, IconButton, FlatButton, Dialog, SelectField
-} from 'material-ui';
+  Navbar,
+  Nav,
+  NavItem,
+  Button,
+  Input,
+  Glyphicon,
+  Modal
+} from 'react-bootstrap';
 
 
 function getAbsoluteURL(url) {
@@ -53,8 +55,9 @@ export default React.createClass({
     Actions.setFontSize(fontSize);
   },
 
-  changeFontFamily(e, selectedIndex, menuItem) {
-    Actions.setFontFamily(menuItem.payload);
+  changeFontFamily(e) {
+    console.log('changeFontFamily', e.target.value);
+    Actions.setFontFamily(e.target.value);
   },
 
   getHandBoardURL() {
@@ -72,97 +75,91 @@ export default React.createClass({
     this.setState({showQR: false});
   },
 
+  handleNavSelection(eventKey){
+    console.debug('nav selected', eventKey);
+    if (eventKey === 1) {
+      this.showHandBoardQR();
+    }
+  },
+
+  openHandBoardLink(url) {
+    window.open(url);
+  },
+
   render: function() {
 
-    let qrCodeDialog = null;
-    if (this.state.showQR) {
-      const url = this.getHandBoardURL();
-      const actions = [
-        (
-          <FlatButton label="Close"
-                      key="btnClose"
-                      secondary={true}
-                      onTouchTap={this.hideHandBoardQR} />
-        )
-      ];
-
-      qrCodeDialog = (
-        <Dialog openImmediately={true}
-                actions={actions}
-                modal={true}>
-          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-              <QRCode size={200} text={url} />
-              <a href={url} target="_blank">Open</a>
-          </div>
-        </Dialog>
-      );
-    }
+    const url = this.getHandBoardURL();
 
     return (
       <div >
-        {qrCodeDialog}
-        <Toolbar>
-          <ToolbarGroup key={0} float="left">
-            <ToolbarTitle text="Anonymous" />
-          </ToolbarGroup>
-          <ToolbarGroup key={1} float="right">
-            <FlatButton label="Hand Board"
-                        secondary={true}
-                        onTouchTap={this.showHandBoardQR} />
-            <FontIcon className="material-icons"
-                      onTouchTap={this.regenerate}>cached</FontIcon>
-          </ToolbarGroup>
-        </Toolbar>
+
+        <Modal show={this.state.showQR} onHide={this.hideHandBoardQR}>
+          <Modal.Header closeButton>
+            <Modal.Title>Hand Board Link</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div style={{textAlign: 'center'}}>
+              <QRCode size={'50vmin'} text={url} />
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={this.openHandBoardLink.bind(this, url)}>Open Link</Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Navbar brand="Anonymous" fluid>
+          <Nav>
+            <form className="navbar-form navbar-left" role="search">
+              <div className="form-group">
+                <Input type="select"
+                       label={<Glyphicon glyph="font" />}
+                       value={this.state.fontFamily}
+                       onChange={this.changeFontFamily}
+                       style={{marginLeft: 8, marginRight: 5}}
+                       >
+                <option value="sans-serif">Sans Serif</option>
+                <option value="serif">Serif</option>
+                <option value="monospace">Monospace</option>
+                </Input>
+
+                <Input type="number"
+                       value={this.state.fontSize}
+                       onChange={this.changeFontSize}
+                       min="1"
+                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
+                />
+
+
+                <Input type="number"
+                       label={<Glyphicon glyph="text-width" />}
+                       value={this.state.letterHSpacing}
+                       onChange={this.changeLetterHSpacing}
+                       min="1"
+                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
+                />
+
+
+                <Input type="number"
+                       label={<Glyphicon glyph="text-height" />}
+                       value={this.state.letterVSpacing}
+                       onChange={this.changeLetterVSpacing}
+                       min="1"
+                       style={{marginLeft: 8, marginRight: 5, maxWidth: '7rem'}}
+                />
+
+              </div>
+            </form>
+
+          </Nav>
+          <Nav right bsStyle="tabs" onSelect={this.handleNavSelection}>
+            <NavItem eventKey={1}><Glyphicon glyph="qrcode" /></NavItem>
+          </Nav>
+        </Navbar>
 
         <div style={{display: 'flex', justifyContent: 'center'}}>
           <LetterBoard />
         </div>
 
-        <div style={{position: 'fixed',
-                     bottom: 5,
-                     display: 'flex',
-                     left: 5,
-                     right: 5,
-                     alignItems: 'center',
-                     justifyContent: 'space-between'}}>
-          <div>
-
-            <SelectField floatingLabelText="Font Family"
-                         value={this.state.fontFamily}
-                         onChange={this.changeFontFamily}
-                         menuItems={FONT_FAMILIES}
-                         style={{marginLeft: 5, marginRight: 5}}
-            />
-
-            <TextField type="number"
-                       floatingLabelText="Font Size"
-                       value={this.state.fontSize}
-                       onChange={this.changeFontSize}
-                       min="1"
-                       style={{marginLeft: 5, marginRight: 5}}
-            />
-
-
-            <TextField type="number"
-                       floatingLabelText="H Spacing"
-                       value={this.state.letterHSpacing}
-                       onChange={this.changeLetterHSpacing}
-                       min="1"
-                       style={{marginLeft: 5, marginRight: 5}}
-            />
-
-
-            <TextField type="number"
-                       floatingLabelText="V Spacing"
-                       value={this.state.letterVSpacing}
-                       onChange={this.changeLetterVSpacing}
-                       min="1"
-                       style={{marginLeft: 5, marginRight: 5}}
-            />
-
-          </div>
-
-        </div>
       </div>
     );
   }
