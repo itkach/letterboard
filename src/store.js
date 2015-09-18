@@ -44,7 +44,8 @@ export default Reflux.createStore({
       fontSize: 20,
       letterHSpacing: 0,
       letterVSpacing: 0,
-      fontFamily: 'serif'
+      fontFamily: 'serif',
+      overlayColor: null
     };
 
     const data = storage.get('state', {});
@@ -88,7 +89,10 @@ export default Reflux.createStore({
   onSetLetterSet(letterSet) {
     const letters = generate(letterSet);
     this.data = {...this.data, letterSet, letters};
-  }
+  },
 
+  onSetOverlayColor(overlayColor) {
+    this.data = {...this.data, overlayColor};
+  }
 
 });

@@ -11,6 +11,7 @@ import {
   Nav,
   NavItem,
   Button,
+  ButtonGroup,
   Input,
   Glyphicon,
   Modal
@@ -22,6 +23,60 @@ function getAbsoluteURL(url) {
   a.href = url;
   return a.href;
 }
+
+
+const OverlayToggleButton = React.createClass({
+
+  mixins: [
+    React.addons.PureRenderMixin
+  ],
+
+  onTouchTap() {
+    Actions.setOverlayColor(this.props.color);
+  },
+
+  render: function() {
+    const style = this.props.color ?
+                  {backgroundColor: this.props.color, opacity: 0.3} : null;
+    return (
+      <Button style={style} onTouchTap={this.onTouchTap}>
+        {'\u00A0'}
+      </Button>
+    );
+
+  }
+
+});
+
+
+const ColorOverlay = React.createClass({
+
+  mixins: [
+    React.addons.PureRenderMixin
+  ],
+
+  render: function() {
+
+    const style = {
+      zIndex: 1000,
+      backgroundColor: this.props.color,
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      opacity: 0.4,
+      width: '100%'
+    };
+
+    return (
+      <div style={style} />
+    );
+
+  }
+
+});
+
 
 
 export default React.createClass({
@@ -90,8 +145,7 @@ export default React.createClass({
     const url = this.getHandBoardURL();
 
     return (
-      <div >
-
+      <div>
         <Modal show={this.state.showQR} onHide={this.hideHandBoardQR}>
           <Modal.Header closeButton>
             <Modal.Title>Hand Board Link</Modal.Title>
@@ -142,8 +196,15 @@ export default React.createClass({
                        value={this.state.letterVSpacing}
                        onChange={this.changeLetterVSpacing}
                        min="1"
-                       style={{marginLeft: 8, marginRight: 5, maxWidth: '7rem'}}
+                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
                 />
+
+                <ButtonGroup>
+                  <OverlayToggleButton />
+                  <OverlayToggleButton color="red"/>
+                  <OverlayToggleButton color="green"/>
+                  <OverlayToggleButton color="black"/>
+                </ButtonGroup>
 
               </div>
             </form>
@@ -165,7 +226,9 @@ export default React.createClass({
           </Nav>
         </Navbar>
 
-        <div style={{display: 'flex', justifyContent: 'center'}}>
+        <div style={{display: 'flex', justifyContent: 'center', position: 'relative'}}>
+
+          <ColorOverlay color={this.state.overlayColor} />
           <LetterBoard />
         </div>
 

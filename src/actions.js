@@ -6,5 +6,6 @@ export default Reflux.createActions([
   'setLetterVSpacing',
   'setLetterHSpacing',
   'setLetterSet',
+  'setOverlayColor',
   'regenerate'
 ]);
