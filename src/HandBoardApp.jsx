@@ -111,7 +111,7 @@ const CurrentLetter = React.createClass({
   ],
 
   styleSmall: {
-    fontSize: '12vh'
+    fontSize: '10vh'
   },
 
   styleLarge: {
