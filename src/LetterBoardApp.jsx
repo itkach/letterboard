@@ -228,8 +228,7 @@ export default React.createClass({
           </Nav>
         </Navbar>
 
-        <div style={{display: 'flex', justifyContent: 'center', position: 'relative'}}>
-
+        <div style={{position: 'relative'}}>
           <ColorOverlay color={this.state.overlayColor} />
           <LetterBoard />
         </div>

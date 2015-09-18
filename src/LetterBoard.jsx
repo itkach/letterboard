@@ -97,7 +97,10 @@ export default React.createClass({
     }
 
     return (
-      <table style={{fontSize: this.state.fontSize, fontFamily: this.state.fontFamily}}>
+      <table style={{marginLeft: 'auto',
+                     marginRight: 'auto',
+                     fontSize: this.state.fontSize,
+                     fontFamily: this.state.fontFamily}}>
         <tbody>
           {rows}
         </tbody>
