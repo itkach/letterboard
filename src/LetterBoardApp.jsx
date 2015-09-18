@@ -131,9 +131,10 @@ export default React.createClass({
 
   handleNavSelection(eventKey){
     console.debug('nav selected', eventKey);
-    if (eventKey === 1) {
-      this.showHandBoardQR();
-    }
+    return {
+      1: this.showHandBoardQR,
+      2: Actions.regenerate
+    }[eventKey]();
   },
 
   openHandBoardLink(url) {
@@ -223,6 +224,7 @@ export default React.createClass({
                 </Input>
             </form>
             <NavItem eventKey={1}><Glyphicon glyph="qrcode" /></NavItem>
+            <NavItem eventKey={2}><Glyphicon glyph="refresh" /></NavItem>
           </Nav>
         </Navbar>
 

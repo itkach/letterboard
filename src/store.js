@@ -67,7 +67,7 @@ export default Reflux.createStore({
   },
 
   onRegenerate() {
-    this.data = {...this.data, letters: generate()};
+    this.data = {...this.data, letters: generate(this.data.letterSet)};
   },
 
   onSetFontSize(fontSize) {
