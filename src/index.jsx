@@ -20,7 +20,7 @@ const Root = React.createClass({
     if (hash) {
       console.debug('hash', hash);
       try {
-        const data = JSON.parse(hash.substr(1));
+        const data = JSON.parse(decodeURIComponent(hash.substr(1)));
         if (data) {
           const {app, ...rest} = data;
           if (app === 'handboard') {

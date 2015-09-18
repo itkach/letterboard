@@ -118,7 +118,8 @@ export default React.createClass({
     const letters = this.state.letters.join(''),
           fontFamily = this.state.fontFamily,
           app = 'handboard';
-    return getAbsoluteURL('./') + '#' + JSON.stringify({letters, fontFamily, app});
+    return getAbsoluteURL('./') + '#' +
+           encodeURIComponent(JSON.stringify({letters, fontFamily, app}));
   },
 
   showHandBoardQR() {
