@@ -51,6 +51,7 @@ const Store = Reflux.createStore({
         currentLetters =  this.data.letters.join('');
     if (letters === currentLetters) {
       console.debug('Already initialized for these letters', letters);
+      this.data = {...this.data, fontFamily: data.fontFamily};
       return;
     }
     letters = letters.split('');
@@ -124,11 +125,13 @@ const CurrentLetter = React.createClass({
 
     const styleSmall = {
       ...this.styleSmall,
+      fontFamily: this.props.fontFamily,
       color: small ? 'black' : 'lightgrey'
     };
 
     const styleLarge = {
       ...this.styleLarge,
+      fontFamily: this.props.fontFamily,
       color: !small ? 'black' : 'lightgrey'
     };
 
@@ -221,12 +224,13 @@ export default React.createClass({
         <div style={{textAlign: 'center'}}>
           <WellDone done={this.state.endTime} />
           <Elapsed start={this.state.startTime} end={this.state.endTime} />
-          <CurrentLetter letter={this.state.currentLetter} />
+          <CurrentLetter letter={this.state.currentLetter}
+                         fontFamily={this.state.fontFamily}/>
         </div>
         <div>
           <HandBoard onSelection={this.props.placeLetter}
                      letters={this.state.placedLetters}
-                     fontFamily={this.props.fontFamily}
+                     fontFamily={this.state.fontFamily}
                      columnCount={this.state.columnCount}
                      onPlaceSelected={this.placeLetter}
           />
