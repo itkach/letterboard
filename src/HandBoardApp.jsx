@@ -107,11 +107,11 @@ const CurrentLetter = React.createClass({
   ],
 
   styleSmall: {
-    fontSize: '15vw'
+    fontSize: '12vh'
   },
 
   styleLarge: {
-    fontSize: '20vw'
+    fontSize: '16vh'
   },
 
   render: function() {
@@ -146,7 +146,7 @@ const WellDone = React.createClass({
   ],
 
   style: {
-    fontSize: '15vw',
+    fontSize: '12vw',
     color: 'green'
   },
 
