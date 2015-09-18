@@ -17,20 +17,19 @@ const Store = Reflux.createStore({
 
   listenables: Actions,
 
-  init() {
-    const defaults = {
-      letters: [],
-      remainingLetters: [],
-      columnCount: 12,
-      fontFamily: 'serif',
-      placedLetters: [],
-      currentLetter: null,
-      currentIndex: null
-    };
+  defaults: {
+    letters: [],
+    remainingLetters: [],
+    columnCount: 12,
+    fontFamily: 'serif',
+    placedLetters: [],
+    currentLetter: null,
+    currentIndex: null
+  },
 
-    //const data = storage.get('state', {});
-    //this.data = {...defaults, ...data};
-    this.data = {...defaults};
+  init() {
+    const data = storage.get('state', {});
+    this.data = {...this.defaults, ...data};
   },
 
   getInitialState() {
@@ -47,9 +46,13 @@ const Store = Reflux.createStore({
     this.trigger(this._data);
   },
 
-
   onInitialize(data) {
-    let {letters, ...otherData} = data;
+    let {letters, ...otherData} = data,
+        currentLetters =  this.data.letters.join('');
+    if (letters === currentLetters) {
+      console.debug('Already initialized for these letters', letters);
+      return;
+    }
     letters = letters.split('');
     let count = letters.length,
         remainingLetters = [],
@@ -62,7 +65,7 @@ const Store = Reflux.createStore({
     }
 
     const startTime = new Date().getTime();
-    this.data = {...this.data, ...otherData, letters,
+    this.data = {...this.defaults, ...otherData, letters,
                  remainingLetters, placedLetters, startTime};
     Actions.nextLetter();
   },
