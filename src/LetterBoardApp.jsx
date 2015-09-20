@@ -179,6 +179,30 @@ export default React.createClass({
     window.open(url);
   },
 
+  nextValue(values, stateAttr, action) {
+    const current = values.indexOf(this.state[stateAttr]),
+          next = current + 1 < values.length ? current + 1 : 0;
+    action(values[next]);
+  },
+
+  nextOverlayColor() {
+    this.nextValue(Store.OVERLAY_COLORS,
+                   'overlayColor',
+                   Actions.setOverlayColor);
+  },
+
+  nextLetterSet() {
+    this.nextValue(Store.LETTER_SETS,
+                   'letterSet',
+                   Actions.setLetterSet);
+  },
+
+  nextFont() {
+    this.nextValue(Store.FONT_FAMILIES,
+                   'fontFamily',
+                   Actions.setFontFamily);
+  },
+
   componentDidMount() {
     keymaster('q', this.showHandBoardQR);
     keymaster('shift+r', Actions.regenerate);
@@ -188,6 +212,9 @@ export default React.createClass({
     keymaster(',', this.decreaseLetterHSpacing);
     keymaster('\'', this.increaseLetterVSpacing);
     keymaster(';', this.decreaseLetterVSpacing);
+    keymaster('c', this.nextOverlayColor);
+    keymaster('l', this.nextLetterSet);
+    keymaster('f', this.nextFont);
   },
 
   render: function() {
@@ -219,9 +246,7 @@ export default React.createClass({
                        value={this.state.fontFamily}
                        onChange={this.changeFontFamily}
                        style={{marginLeft: 8, marginRight: 5}} >
-                  <option value="sans-serif">Sans Serif</option>
-                  <option value="serif">Serif</option>
-                  <option value="monospace">Monospace</option>
+                {Store.FONT_FAMILIES.map(x => <option key={x} value={x}>{x}</option>)}
                 </Input>
 
                 <Input type="number"
@@ -250,10 +275,9 @@ export default React.createClass({
                 />
 
                 <ButtonGroup>
-                  <OverlayToggleButton />
-                  <OverlayToggleButton color="red"/>
-                  <OverlayToggleButton color="green"/>
-                  <OverlayToggleButton color="black"/>
+                  {Store.OVERLAY_COLORS.map(
+                    x =><OverlayToggleButton key={x} color={x} />
+                   )}
                 </ButtonGroup>
 
               </div>

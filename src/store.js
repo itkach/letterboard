@@ -31,6 +31,19 @@ export default Reflux.createStore({
   'オカキクケコシスセソタテトナニヌノヒフヘホマミヨ'
   ],
 
+  FONT_FAMILIES: [
+    'sans-serif',
+    'serif',
+    'monospace'
+  ],
+
+  OVERLAY_COLORS: [
+    null,
+    'red',
+    'green',
+    'black'
+  ],
+
   listenables: Actions,
 
   init() {
