@@ -2,11 +2,16 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './style.css';
 import React from 'react/addons';
 import initTapEventPlugin from 'react-tap-event-plugin';
+import keymaster from 'keymaster';
 
 import LetterBoardApp from './LetterBoardApp.jsx';
 import HandBoardApp from './HandBoardApp.jsx';
 
 initTapEventPlugin();
+
+keymaster.filter = () => true;
+
+
 
 const Root = React.createClass({
 

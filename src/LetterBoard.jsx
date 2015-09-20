@@ -58,7 +58,7 @@ const LetterRow = React.createClass({
             padding: 0
           };
     style.paddingRight = style.paddingLeft = this.props.hSpacing / 2;
-    style.paddingTop = style.paddingBottom = this.props.vSpacing / 2;
+    style.paddingTop = style.paddingBottom = this.props.vSpacing;
     return <Letter key={index} char={char} style={style} />;
   },
 

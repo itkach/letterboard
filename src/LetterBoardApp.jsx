@@ -5,6 +5,7 @@ import LetterBoard from './LetterBoard.jsx';
 import Actions from './actions';
 import Store from './store';
 import QRCode from './QRCode.jsx';
+import keymaster from 'keymaster';
 
 import {
   Navbar,
@@ -91,18 +92,54 @@ export default React.createClass({
   },
 
   changeLetterVSpacing(e) {
-    const fontSize = parseFloat(e.target.value);
-    Actions.setLetterVSpacing(fontSize);
+    const value = parseFloat(e.target.value);
+    Actions.setLetterVSpacing(value);
+  },
+
+  increaseLetterVSpacing() {
+    const value = this.state.letterVSpacing + 1;
+    Actions.setLetterVSpacing(value);
+  },
+
+  decreaseLetterVSpacing() {
+    const value = this.state.letterVSpacing - 1;
+    if (value > 0) {
+      Actions.setLetterVSpacing(value);
+    }
   },
 
   changeLetterHSpacing(e) {
-    const fontSize = parseFloat(e.target.value);
-    Actions.setLetterHSpacing(fontSize);
+    const value = parseFloat(e.target.value);
+    Actions.setLetterHSpacing(value);
+  },
+
+  increaseLetterHSpacing() {
+    const value = this.state.letterHSpacing + 1;
+    Actions.setLetterHSpacing(value);
+  },
+
+  decreaseLetterHSpacing() {
+    const value = this.state.letterHSpacing - 1;
+    if (value > 0) {
+      Actions.setLetterHSpacing(value);
+    }
   },
 
   changeFontSize(e) {
     const fontSize = parseFloat(e.target.value);
     Actions.setFontSize(fontSize);
+  },
+
+  increaseFontSize() {
+    const fontSize = this.state.fontSize + 1;
+    Actions.setFontSize(fontSize);
+  },
+
+  decreaseFontSize() {
+    const fontSize = this.state.fontSize - 1;
+    if (fontSize > 0) {
+      Actions.setFontSize(fontSize);
+    }
   },
 
   changeFontFamily(e) {
@@ -140,6 +177,17 @@ export default React.createClass({
 
   openHandBoardLink(url) {
     window.open(url);
+  },
+
+  componentDidMount() {
+    keymaster('q', this.showHandBoardQR);
+    keymaster('shift+r', Actions.regenerate);
+    keymaster(']', this.increaseFontSize);
+    keymaster('[', this.decreaseFontSize);
+    keymaster('.', this.increaseLetterHSpacing);
+    keymaster(',', this.decreaseLetterHSpacing);
+    keymaster('\'', this.increaseLetterVSpacing);
+    keymaster(';', this.decreaseLetterVSpacing);
   },
 
   render: function() {
