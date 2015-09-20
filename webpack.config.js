@@ -1,10 +1,12 @@
-var webpack = require("webpack");
+var webpack = require("webpack"),
+    path = require('path');
 
 module.exports = {
 
   entry: {
-    app: './src/index.jsx',
-    vendor: [
+    app:  path.resolve(__dirname, 'src/index.jsx'),
+    qrcode: path.resolve(__dirname, 'src/qrcode-worker.js'),
+    vendors: [
       'react',
       'react/addons',
       'react-tap-event-plugin',
@@ -13,13 +15,12 @@ module.exports = {
   },
 
   plugins: [
-    new webpack.optimize.CommonsChunkPlugin(
-      /* chunkName= */"vendor",
-      /* filename= */"dist/js/vendor.bundle.js")
+    new webpack.optimize.CommonsChunkPlugin("vendors", "vendors.js")
   ],
 
   output: {
-    filename: 'dist/js/bundle.js'
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].js' // Notice we use a variable
   },
 
   module: {
@@ -56,11 +57,11 @@ module.exports = {
       },
       {
         test: /\.(eot|woff|woff2|ttf)$/,
-        loader: 'url-loader?limit=30000&name=dist/fonts/[name]-[hash].[ext]'
+        loader: 'url-loader?limit=30000&name=fonts/[name]-[hash].[ext]'
       },
       {
         test: /\.(svg|png|jpg)$/,
-        loader: 'url-loader?limit=10000&name=dist/images/[name]-[hash].[ext]'
+        loader: 'url-loader?limit=10000&name=images/[name]-[hash].[ext]'
       },
       {
         test: /\.js(x?)$/,
