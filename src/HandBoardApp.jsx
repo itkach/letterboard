@@ -67,10 +67,10 @@ const Store = Reflux.createStore({
     this.trigger(this._data);
   },
 
-  onInitialize(data) {
+  onInitialize(data, force) {
     let {letters, ...otherData} = data,
         currentLetters =  this.data.letters.join('');
-    if (letters === currentLetters) {
+    if (letters === currentLetters && !force) {
       console.debug('Already initialized for these letters', letters);
       this.data = {...this.data, fontFamily: data.fontFamily};
       return;
@@ -203,12 +203,14 @@ const Elapsed = React.createClass({
       return null;
     }
 
-    const duration = Math.round((this.props.end - this.props.start) / (1000 * 60));
+    const dt = this.props.end - this.props.start,
+          dts = (dt > 0 ? dt : 0) / 1000,
+          minutes = Math.floor(dts / 60),
+          seconds = Math.floor(dts % 60),
+          paddedSeconds = (seconds < 10 ? '0' : '') + seconds;
 
     return (
-      <div>
-        Done in {duration} min
-      </div>
+      <p className="navbar-text">{minutes}:{paddedSeconds}</p>
     );
   }
 });
@@ -222,7 +224,11 @@ const HandBoardApp = React.createClass({
   ],
 
   componentDidMount() {
-    Actions.initialize(this.props.initialData);
+    this.reset();
+    setInterval(
+      () => this.setState({now: new Date().getTime()}),
+      1000
+    );
   },
 
   nextLetter() {
@@ -234,6 +240,29 @@ const HandBoardApp = React.createClass({
     Actions.placeLetter(row, col);
   },
 
+  hideConfirmReset() {
+    this.setState({showConfirmReset: false});
+  },
+
+  showConfirmReset() {
+    this.setState({showConfirmReset: true});
+  },
+
+  reset(force = false) {
+    Actions.initialize(this.props.initialData, force);
+  },
+
+  confirmReset() {
+    this.hideConfirmReset();
+    this.reset(true);
+  },
+
+  handleNavSelection(eventKey) {
+    return {
+      1: this.showConfirmReset
+    }[eventKey]();
+  },
+
   render: function() {
 
     const progress = 100 * (this.state.letters.length - (
@@ -241,26 +270,54 @@ const HandBoardApp = React.createClass({
       (this.state.currentLetter ? 1 : 0))) / this.state.letters.length;
 
     return (
-      <div style={{margin: '0.5rem'}}>
-        <div style={{textAlign: 'center'}}>
-          <WellDone done={this.state.endTime} />
-          <Elapsed start={this.state.startTime} end={this.state.endTime} />
-          <CurrentLetter letter={this.state.currentLetter}
-                         fontFamily={this.state.fontFamily}/>
-        </div>
-        <div>
-          <HandBoard onSelection={this.props.placeLetter}
-                     letters={this.state.placedLetters}
-                     fontFamily={this.state.fontFamily}
-                     columnCount={this.state.columnCount}
-                     onPlaceSelected={this.placeLetter}
-          />
-        </div>
-        <div style={{height: '0.5rem',
-                     width: ''+progress+'%',
-                     marginTop: '0.5rem',
-                     border: 'thin solid grey',
-                     backgroundColor: 'green'}}>
+      <div>
+
+        <Modal show={this.state.showConfirmReset} onHide={this.hideConfirmReset}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Reset</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div style={{textAlign: 'center'}}>
+              Are you sure you want to start over?
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={this.hideConfirmReset}>No</Button>
+            <Button onClick={this.confirmReset}>Yes</Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Navbar fluid>
+          <Nav>
+            <Elapsed start={this.state.startTime}
+                     end={this.state.endTime || this.state.now} />
+          </Nav>
+          <Nav right onSelect={this.handleNavSelection}>
+            <NavItem eventKey={1}><Glyphicon glyph="refresh" /></NavItem>
+          </Nav>
+        </Navbar>
+
+
+        <div style={{margin: '0.5rem'}}>
+          <div style={{textAlign: 'center'}}>
+            <WellDone done={this.state.endTime} />
+            <CurrentLetter letter={this.state.currentLetter}
+                           fontFamily={this.state.fontFamily}/>
+          </div>
+          <div>
+            <HandBoard onSelection={this.props.placeLetter}
+                       letters={this.state.placedLetters}
+                       fontFamily={this.state.fontFamily}
+                       columnCount={this.state.columnCount}
+                       onPlaceSelected={this.placeLetter}
+            />
+          </div>
+          <div style={{height: '0.5rem',
+                       width: ''+progress+'%',
+                       marginTop: '0.5rem',
+                       border: 'thin solid grey',
+                       backgroundColor: 'green'}}>
+          </div>
         </div>
       </div>
     );
