@@ -5,6 +5,7 @@ module.exports = {
 
   entry: {
     app:  path.resolve(__dirname, 'src/index.jsx'),
+    handboard:  path.resolve(__dirname, 'src/HandBoardApp.jsx'),
     qrcode: path.resolve(__dirname, 'src/qrcode-worker.js'),
     vendors: [
       'react',

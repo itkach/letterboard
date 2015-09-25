@@ -1,8 +1,29 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './style.css';
+
 import React from 'react/addons';
 import Reflux from 'reflux';
 import {randomInt} from './randomize';
 import localstorage from './localstorage';
 import HandBoard from './HandBoard.jsx';
+
+import initTapEventPlugin from 'react-tap-event-plugin';
+import keymaster from 'keymaster';
+
+import {
+  Navbar,
+  Nav,
+  NavItem,
+  Button,
+  Glyphicon,
+  Modal
+} from 'react-bootstrap';
+
+
+initTapEventPlugin();
+
+keymaster.filter = () => true;
+
 
 const storage = localstorage('handboard');
 
@@ -193,7 +214,7 @@ const Elapsed = React.createClass({
 });
 
 
-export default React.createClass({
+const HandBoardApp = React.createClass({
 
   mixins: [
     React.addons.PureRenderMixin,
@@ -245,3 +266,43 @@ export default React.createClass({
     );
   }
 });
+
+
+const Root = React.createClass({
+
+  mixins: [
+    React.addons.PureRenderMixin
+  ],
+
+  render: function() {
+
+    const hash = window.location.hash;
+    if (hash) {
+      console.debug('hash', hash);
+      try {
+        const data = JSON.parse(decodeURIComponent(hash.substr(1)));
+        if (data) {
+          return <HandBoardApp initialData={data}/>;
+        }
+      }
+      catch (ex) {
+        console.error(ex);
+      }
+    }
+
+    return (
+      <div>No valid init data given</div>
+    );
+  }
+});
+
+function main() {
+  React.render(<Root />, document.body);
+}
+
+if (document.readyState === "complete") {
+  main();
+}
+else {
+  document.addEventListener("DOMContentLoaded", main, false);
+}

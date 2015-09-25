@@ -5,12 +5,10 @@ import initTapEventPlugin from 'react-tap-event-plugin';
 import keymaster from 'keymaster';
 
 import LetterBoardApp from './LetterBoardApp.jsx';
-import HandBoardApp from './HandBoardApp.jsx';
 
 initTapEventPlugin();
 
 keymaster.filter = () => true;
-
 
 
 const Root = React.createClass({
@@ -20,24 +18,6 @@ const Root = React.createClass({
   ],
 
   render: function() {
-
-    const hash = window.location.hash;
-    if (hash) {
-      console.debug('hash', hash);
-      try {
-        const data = JSON.parse(decodeURIComponent(hash.substr(1)));
-        if (data) {
-          const {app, ...rest} = data;
-          if (app === 'handboard') {
-            return <HandBoardApp initialData={rest}/>;
-          }
-        }
-      }
-      catch (ex) {
-        console.error(ex);
-      }
-    }
-
     return (
       <LetterBoardApp />
     );
