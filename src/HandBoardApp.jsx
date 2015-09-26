@@ -11,9 +11,6 @@ import initTapEventPlugin from 'react-tap-event-plugin';
 import keymaster from 'keymaster';
 
 import {
-  Navbar,
-  Nav,
-  NavItem,
   Button,
   Glyphicon,
   Modal
@@ -210,7 +207,9 @@ const Elapsed = React.createClass({
           paddedSeconds = (seconds < 10 ? '0' : '') + seconds;
 
     return (
-      <p className="navbar-text">{minutes}:{paddedSeconds}</p>
+      <div style={this.props.style} className={this.props.className}>
+        {minutes}:{paddedSeconds}
+      </div>
     );
   }
 });
@@ -257,12 +256,6 @@ const HandBoardApp = React.createClass({
     this.reset(true);
   },
 
-  handleNavSelection(eventKey) {
-    return {
-      1: this.showConfirmReset
-    }[eventKey]();
-  },
-
   render: function() {
 
     const progress = 100 * (this.state.letters.length - (
@@ -287,33 +280,33 @@ const HandBoardApp = React.createClass({
           </Modal.Footer>
         </Modal>
 
-        <Navbar fluid>
-          <Nav>
-            <Elapsed start={this.state.startTime}
-                     end={this.state.endTime || this.state.now} />
-          </Nav>
-          <Nav right onSelect={this.handleNavSelection}>
-            <NavItem eventKey={1}><Glyphicon glyph="refresh" /></NavItem>
-          </Nav>
-        </Navbar>
-
-
         <div style={{margin: '0.5rem'}}>
           <div style={{textAlign: 'center'}}>
+
+            <div style={{float: 'left', color: 'grey'}}>
+              <Elapsed start={this.state.startTime}
+                       end={this.state.endTime || this.state.now} />
+            </div>
+
+            <Button onTouchTap={this.showConfirmReset}
+                    style={{float: 'right'}}>
+              <Glyphicon glyph="refresh" />
+            </Button>
+
             <WellDone done={this.state.endTime} />
             <CurrentLetter letter={this.state.currentLetter}
                            fontFamily={this.state.fontFamily}/>
+
           </div>
           <div>
-            <HandBoard onSelection={this.props.placeLetter}
-                       letters={this.state.placedLetters}
+            <HandBoard letters={this.state.placedLetters}
                        fontFamily={this.state.fontFamily}
                        columnCount={this.state.columnCount}
                        onPlaceSelected={this.placeLetter}
             />
           </div>
           <div style={{height: '0.5rem',
-                       width: ''+progress+'%',
+                       width: '' + progress + '%',
                        marginTop: '0.5rem',
                        border: 'thin solid grey',
                        backgroundColor: 'green'}}>
