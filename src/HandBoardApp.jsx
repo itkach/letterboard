@@ -258,31 +258,6 @@ const WellDone = React.createClass({
 });
 
 
-/* const WellDone = React.createClass({
-
-   mixins: [
-   React.addons.PureRenderMixin
-   ],
-
-   style: {
-   fontSize: '12vw',
-   color: 'green'
-   },
-
-   render: function() {
-
-   if (!this.props.done) {
-   return null;
-   }
-
-   return (
-   <div style={this.style}>
-   Well done!
-   </div>
-   );
-   }
-   }); */
-
 const Elapsed = React.createClass({
 
   mixins: [
