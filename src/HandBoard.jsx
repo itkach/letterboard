@@ -63,7 +63,6 @@ const LetterRow = React.createClass({
   },
 
   createItem(letter, index) {
-    console.debug('create item for char', letter.char, 'at index', index);
     const small = index % 2 === 1,
           style = {
             fontSize: small ? '100%' : '' + LARGE_SMALL_RATIO * 100 + '%',
@@ -100,7 +99,6 @@ export default React.createClass({
       return;
     }
     event.preventDefault();
-    console.debug('tap', rowIndex, colIndex);
     if (this.props.onPlaceSelected) {
       this.props.onPlaceSelected(rowIndex, colIndex);
     }
@@ -115,7 +113,6 @@ export default React.createClass({
           rows = [];
 
     for (let i = 0; i < rowCount; i++) {
-      console.debug('row', i);
       const rowLetters = letters.slice(i * columnCount, (i + 1) * columnCount);
       rows.push(<LetterRow key={i}
                            letters={rowLetters}
