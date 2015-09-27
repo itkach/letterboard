@@ -228,8 +228,11 @@ const PlayButton = React.createClass({
   },
 
   render: function() {
+    //Zero-width space ensures browsers such as Chrome on iOS
+    //render this div with height as if it contains text
     return (
       <div style={{fontSize: '16vh'}}>
+        {'\u200B'}
         <Glyphicon glyph="play"
                    style={{cursor: 'pointer'}}
                    onTouchTap={this.onTouchTap} />
