@@ -26,9 +26,25 @@ const storage = localstorage('handboard');
 
 const Actions = Reflux.createActions([
   'initialize',
+  'start',
+  'pause',
+  'resume',
   'nextLetter',
   'placeLetter'
 ]);
+
+
+
+const If = React.createClass({
+
+  render: function() {
+    if (!this.props.test) {
+      return null;
+    }
+    return this.props.children;
+  }
+});
+
 
 
 const Store = Reflux.createStore({
@@ -42,7 +58,10 @@ const Store = Reflux.createStore({
     fontFamily: 'serif',
     placedLetters: [],
     currentLetter: null,
-    currentIndex: null
+    currentIndex: null,
+    elapsed: 0,
+    paused: true,
+    done: false
   },
 
   init() {
@@ -69,7 +88,7 @@ const Store = Reflux.createStore({
         currentLetters =  this.data.letters.join('');
     if (letters === currentLetters && !force) {
       console.debug('Already initialized for these letters', letters);
-      this.data = {...this.data, fontFamily: data.fontFamily};
+      this.data = {...this.data, paused: true, fontFamily: data.fontFamily};
       return;
     }
     letters = letters.split('');
@@ -83,10 +102,35 @@ const Store = Reflux.createStore({
       placedLetters[i] = {char: letters[i], shown: false};
     }
 
-    const startTime = new Date().getTime();
     this.data = {...this.defaults, ...otherData, letters,
-                 remainingLetters, placedLetters, startTime};
+                 remainingLetters, placedLetters, paused: true};
     Actions.nextLetter();
+  },
+
+  onStart() {
+    this.data = {...this.data, elapsed: 0};
+    Actions.resume();
+  },
+
+  stopTimer() {
+    clearInterval(this.interval);
+    this.interval = null;
+  },
+
+  onPause() {
+    this.stopTimer();
+    this.data = {...this.data, paused: true};
+  },
+
+  onResume() {
+    if (this.interval) {
+      return;
+    }
+    this.interval = setInterval(
+      () => this.data = {...this.data, elapsed: this.data.elapsed + 1},
+      1000
+    );
+    this.data = {...this.data, paused: false};
   },
 
   onNextLetter() {
@@ -97,10 +141,12 @@ const Store = Reflux.createStore({
           randomIndex = randomInt(0, remainingLetters.length),
           [currentLetter] = remainingLetters.splice(randomIndex, 1);
     console.debug('Next letter is', currentLetter);
-
-    const endTime = (this.data.remainingLetters.length === 0  && !currentLetter) ? new Date().getTime() : null;
-
-    this.data = {...this.data, currentLetter, remainingLetters, endTime};
+    const done = (this.data.remainingLetters.length === 0  && !currentLetter),
+          paused = this.data.paused || done;
+    if (done) {
+      this.stopTimer();
+    }
+    this.data = {...this.data, currentLetter, remainingLetters, done, paused};
   },
 
   onPlaceLetter(row, col) {
@@ -136,6 +182,10 @@ const CurrentLetter = React.createClass({
     fontSize: '16vh'
   },
 
+  onTouchTap() {
+    Actions.pause();
+  },
+
   render: function() {
 
     const {char, index} = this.props.letter || {},
@@ -155,8 +205,34 @@ const CurrentLetter = React.createClass({
 
     return (
       <div>
-        <span style={styleSmall}>{char}</span>
-        <span style={styleLarge}>{char}</span>
+        <span style={{cursor: 'pointer'}}
+             onTouchTap={this.onTouchTap}>
+          <span style={styleSmall}>{char}</span>
+          <span style={styleLarge}>{char}</span>
+        </span>
+      </div>
+    );
+  }
+});
+
+
+
+const PlayButton = React.createClass({
+
+  mixins: [
+    React.addons.PureRenderMixin
+  ],
+
+  onTouchTap() {
+    Actions.resume();
+  },
+
+  render: function() {
+    return (
+      <div style={{fontSize: '16vh'}}>
+        <Glyphicon glyph="play"
+                   style={{cursor: 'pointer'}}
+                   onTouchTap={this.onTouchTap} />
       </div>
     );
   }
@@ -169,24 +245,40 @@ const WellDone = React.createClass({
     React.addons.PureRenderMixin
   ],
 
-  style: {
-    fontSize: '12vw',
-    color: 'green'
-  },
-
   render: function() {
-
-    if (!this.props.done) {
-      return null;
-    }
-
     return (
-      <div style={this.style}>
-        Well done!
+      <div style={{fontSize: '16vh', color: 'green'}}>
+        <Glyphicon glyph="check" />
       </div>
     );
   }
 });
+
+
+/* const WellDone = React.createClass({
+
+   mixins: [
+   React.addons.PureRenderMixin
+   ],
+
+   style: {
+   fontSize: '12vw',
+   color: 'green'
+   },
+
+   render: function() {
+
+   if (!this.props.done) {
+   return null;
+   }
+
+   return (
+   <div style={this.style}>
+   Well done!
+   </div>
+   );
+   }
+   }); */
 
 const Elapsed = React.createClass({
 
@@ -194,22 +286,26 @@ const Elapsed = React.createClass({
     React.addons.PureRenderMixin
   ],
 
+  pad(value) {
+    return (value < 10 ? '0' : '') + value;
+  },
+
+  style: {
+    marginLeft: '0.5rem'
+  },
+
   render: function() {
 
-    if (!this.props.start || !this.props.end) {
-      return null;
-    }
-
-    const dt = this.props.end - this.props.start,
-          dts = (dt > 0 ? dt : 0) / 1000,
-          minutes = Math.floor(dts / 60),
-          seconds = Math.floor(dts % 60),
-          paddedSeconds = (seconds < 10 ? '0' : '') + seconds;
+    const dt = this.props.value,
+          minutes = Math.floor(dt / 60),
+          seconds = Math.floor(dt % 60),
+          paddedMinutes = this.pad(minutes),
+          paddedSeconds = this.pad(seconds);
 
     return (
-      <div style={this.props.style} className={this.props.className}>
-        {minutes}:{paddedSeconds}
-      </div>
+      <span style={this.style} className={this.props.className}>
+        {paddedMinutes}:{paddedSeconds}
+      </span>
     );
   }
 });
@@ -224,10 +320,6 @@ const HandBoardApp = React.createClass({
 
   componentDidMount() {
     this.reset();
-    setInterval(
-      () => this.setState({now: new Date().getTime()}),
-      1000
-    );
   },
 
   nextLetter() {
@@ -235,6 +327,9 @@ const HandBoardApp = React.createClass({
   },
 
   placeLetter(row, col) {
+    if (this.state.paused) {
+      return;
+    }
     console.debug('place letter', row, col);
     Actions.placeLetter(row, col);
   },
@@ -254,6 +349,18 @@ const HandBoardApp = React.createClass({
   confirmReset() {
     this.hideConfirmReset();
     this.reset(true);
+  },
+
+  togglePause() {
+    if (this.state.done) {
+      return;
+    }
+    if (this.state.paused) {
+      Actions.resume();
+    }
+    else {
+      Actions.pause();
+    }
   },
 
   render: function() {
@@ -280,23 +387,32 @@ const HandBoardApp = React.createClass({
           </Modal.Footer>
         </Modal>
 
+        <Button onTouchTap={this.togglePause}
+                style={{position: 'absolute', margin: '0.5rem'}}>
+          <If test={!this.state.done}>
+            <Glyphicon glyph={this.state.paused ? 'play' : 'pause'} />
+          </If>
+           <Elapsed value={this.state.elapsed} />
+        </Button>
+
+        <Button onTouchTap={this.showConfirmReset}
+                style={{position: 'absolute', right: 0, margin: '0.5rem'}}>
+          <Glyphicon glyph="refresh" />
+        </Button>
+
+
         <div style={{margin: '0.5rem'}}>
           <div style={{textAlign: 'center'}}>
-
-            <div style={{float: 'left', color: 'grey'}}>
-              <Elapsed start={this.state.startTime}
-                       end={this.state.endTime || this.state.now} />
-            </div>
-
-            <Button onTouchTap={this.showConfirmReset}
-                    style={{float: 'right'}}>
-              <Glyphicon glyph="refresh" />
-            </Button>
-
-            <WellDone done={this.state.endTime} />
-            <CurrentLetter letter={this.state.currentLetter}
-                           fontFamily={this.state.fontFamily}/>
-
+            <If test={this.state.done}>
+              <WellDone />
+            </If>
+            <If test={this.state.paused && !this.state.done}>
+              <PlayButton />
+            </If>
+            <If test={!this.state.paused}>
+              <CurrentLetter letter={this.state.currentLetter}
+                             fontFamily={this.state.fontFamily}/>
+            </If>
           </div>
           <div>
             <HandBoard letters={this.state.placedLetters}
@@ -307,7 +423,7 @@ const HandBoardApp = React.createClass({
           </div>
           <div style={{height: '0.5rem',
                        width: '' + progress + '%',
-                       marginTop: '0.5rem',
+                       marginTop: '1rem',
                        border: 'thin solid grey',
                        backgroundColor: 'green'}}>
           </div>

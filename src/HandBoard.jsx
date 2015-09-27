@@ -77,7 +77,6 @@ const LetterRow = React.createClass({
   },
 
   render() {
-    console.debug('Letters:', this.props.letters);
     return (
       <TR style={this.props.style}>
         {this.props.letters.map(this.createItem)}
@@ -99,6 +98,7 @@ export default React.createClass({
       return;
     }
     event.preventDefault();
+    console.debug('tap', rowIndex, colIndex);
     if (this.props.onPlaceSelected) {
       this.props.onPlaceSelected(rowIndex, colIndex);
     }
