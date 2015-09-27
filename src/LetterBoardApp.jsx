@@ -175,6 +175,7 @@ export default React.createClass({
   },
 
   openHandBoardLink(url) {
+    this.hideHandBoardQR();
     window.open(url);
   },
 
