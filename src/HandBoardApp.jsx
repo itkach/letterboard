@@ -6,6 +6,7 @@ import Reflux from 'reflux';
 import {randomInt} from './randomize';
 import localstorage from './localstorage';
 import HandBoard from './HandBoard.jsx';
+import If from './If.jsx';
 
 import initTapEventPlugin from 'react-tap-event-plugin';
 import keymaster from 'keymaster';
@@ -32,19 +33,6 @@ const Actions = Reflux.createActions([
   'nextLetter',
   'placeLetter'
 ]);
-
-
-
-const If = React.createClass({
-
-  render: function() {
-    if (!this.props.test) {
-      return null;
-    }
-    return this.props.children;
-  }
-});
-
 
 
 const Store = Reflux.createStore({

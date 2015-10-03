@@ -8,9 +8,6 @@ import LetterBoardApp from './LetterBoardApp.jsx';
 
 initTapEventPlugin();
 
-keymaster.filter = () => true;
-
-
 const Root = React.createClass({
 
   mixins: [

@@ -1,11 +1,14 @@
 import React from 'react/addons';
 import Reflux from 'reflux';
+import keymaster from 'keymaster';
 
 import LetterBoard from './LetterBoard.jsx';
 import Actions from './actions';
-import Store from './store';
+import Store, {DEFAULT_PROFILE_ID} from './store';
+import {Profiles} from './store';
 import QRCode from './QRCode.jsx';
-import keymaster from 'keymaster';
+import If from './If.jsx';
+
 
 import {
   Navbar,
@@ -15,7 +18,8 @@ import {
   ButtonGroup,
   Input,
   Glyphicon,
-  Modal
+  Modal,
+  Alert
 } from 'react-bootstrap';
 
 
@@ -84,7 +88,8 @@ export default React.createClass({
 
   mixins: [
     React.addons.PureRenderMixin,
-    Reflux.connect(Store)
+    Reflux.connect(Store, 'settings'),
+    Reflux.connect(Profiles, 'profiles')
   ],
 
   regenerate() {
@@ -97,12 +102,12 @@ export default React.createClass({
   },
 
   increaseLetterVSpacing() {
-    const value = this.state.letterVSpacing + 1;
+    const value = this.state.settings.letterVSpacing + 1;
     Actions.setLetterVSpacing(value);
   },
 
   decreaseLetterVSpacing() {
-    const value = this.state.letterVSpacing - 1;
+    const value = this.state.settings.letterVSpacing - 1;
     if (value > 0) {
       Actions.setLetterVSpacing(value);
     }
@@ -114,12 +119,12 @@ export default React.createClass({
   },
 
   increaseLetterHSpacing() {
-    const value = this.state.letterHSpacing + 1;
+    const value = this.state.settings.letterHSpacing + 1;
     Actions.setLetterHSpacing(value);
   },
 
   decreaseLetterHSpacing() {
-    const value = this.state.letterHSpacing - 1;
+    const value = this.state.settings.letterHSpacing - 1;
     if (value > 0) {
       Actions.setLetterHSpacing(value);
     }
@@ -131,12 +136,12 @@ export default React.createClass({
   },
 
   increaseFontSize() {
-    const fontSize = this.state.fontSize + 1;
+    const fontSize = this.state.settings.fontSize + 1;
     Actions.setFontSize(fontSize);
   },
 
   decreaseFontSize() {
-    const fontSize = this.state.fontSize - 1;
+    const fontSize = this.state.settings.fontSize - 1;
     if (fontSize > 0) {
       Actions.setFontSize(fontSize);
     }
@@ -151,9 +156,40 @@ export default React.createClass({
     Actions.setLetterSet(e.target.value);
   },
 
+  changeProfile(e) {
+    e.preventDefault();
+    const selection = e.target.value;
+    console.debug("Selected:", selection);
+    if (selection === '_new') {
+      this.showSaveAsDialog();
+    }
+    else if (selection === '_delete'){
+      this.showDeleteConfirmation();
+    }
+    else {
+      Actions.setProfile(selection);
+    }
+  },
+
+  showSaveAsDialog() {
+    this.setState({showSaveAsDialog: true});
+  },
+
+  hideSaveAsDialog() {
+    this.setState({showSaveAsDialog: false});
+  },
+
+  showDeleteConfirmation() {
+    this.setState({showDeleteConfirmation: true});
+  },
+
+  hideDeleteConfirmation() {
+    this.setState({showDeleteConfirmation: false});
+  },
+
   getHandBoardURL() {
-    const letters = this.state.letters.join(''),
-          fontFamily = this.state.fontFamily;
+    const letters = this.state.settings.letters.join(''),
+          fontFamily = this.state.settings.fontFamily;
     return getAbsoluteURL('./handboard.html') + '#' +
            encodeURIComponent(JSON.stringify({letters, fontFamily}));
   },
@@ -203,6 +239,22 @@ export default React.createClass({
                    Actions.setFontFamily);
   },
 
+  setNewProfileName(e) {
+    this.setState({newProfileName: e.target.value});
+  },
+
+  confirmDelete() {
+    this.hideDeleteConfirmation();
+    Actions.deleteProfile(this.state.profiles.current);
+  },
+
+  saveProfile() {
+    this.hideSaveAsDialog();
+    const {newProfileName, settings} = this.state;
+    Actions.saveProfile(newProfileName, settings);
+    this.setState({newProfileName: ''});
+  },
+
   componentDidMount() {
     keymaster('q', this.showHandBoardQR);
     keymaster('shift+r', Actions.regenerate);
@@ -219,7 +271,14 @@ export default React.createClass({
 
   render: function() {
 
-    const url = this.getHandBoardURL();
+    const url = this.getHandBoardURL(),
+          profileId = this.state.profiles.current,
+          profile = this.state.profiles.available[profileId],
+          newProfileName = this.state.newProfileName,
+          profileNames = new Set(Object.keys(this.state.profiles.available).map(
+            id => this.state.profiles.available[id]
+          )),
+          newProfileNameExists = profileNames.has(newProfileName);
 
     return (
       <div>
@@ -237,20 +296,92 @@ export default React.createClass({
           </Modal.Footer>
         </Modal>
 
-        <Navbar brand="Anonymous" fluid>
+        <Modal show={this.state.showDeleteConfirmation}
+               onHide={this.hideDeleteConfirmation}>
+          <Modal.Header closeButton>
+            <Modal.Title>Delete {profile}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div style={{textAlign: 'center'}}>
+              Are you sure you want to delete profile <em>{profile}</em>?
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={this.hideDeleteConfirmation}>No</Button>
+            <Button onClick={this.confirmDelete}>Yes</Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={this.state.showSaveAsDialog}
+               onHide={this.hideSaveAsDialog}>
+          <Modal.Header closeButton>
+            <Modal.Title>Create New Profile</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div style={{textAlign: 'center'}}>
+              <Input type="text"
+                     autoFocus
+                     value={this.state.newProfileName}
+                       onChange={this.setNewProfileName} />
+              <If test={newProfileNameExists}>
+                <Alert bsStyle="danger" onDismiss={this.handleAlertDismiss}>
+                  Profile <em>{newProfileName}</em> already exists
+                </Alert>
+              </If>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={this.hideSaveAsDialog}>
+              Cancel
+            </Button>
+            <Button onClick={this.saveProfile}
+                    disabled={!newProfileName || newProfileNameExists}>
+              Ok
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Navbar fluid>
+
+          <Nav bsStyle="tabs" >
+            <form className="navbar-form navbar-left" style={{paddingLeft: 0}}>
+                <Input type="select"
+                       label={<Glyphicon glyph="user" />}
+                       value={profileId}
+                       onChange={this.changeProfile}
+                       style={{marginLeft: 8}}
+                       >
+                <optgroup label="Profiles">
+                  {Object.keys(this.state.profiles.available).map(
+                    id => <option key={id} value={id}>
+                    {this.state.profiles.available[id]}
+                    </option>
+                   )}
+                </optgroup>
+                <optgroup label="Manage" >
+                  <option value="_new">New...</option>
+                  <option value="_delete" disabled={profileId === DEFAULT_PROFILE_ID}>
+                    Delete...
+                  </option>
+                </optgroup>
+                </Input>
+            </form>
+          </Nav>
+
           <Nav>
             <form className="navbar-form navbar-left">
               <div className="form-group">
+
                 <Input type="select"
                        label={<Glyphicon glyph="font" />}
-                       value={this.state.fontFamily}
+                       value={this.state.settings.fontFamily}
                        onChange={this.changeFontFamily}
                        style={{marginLeft: 8, marginRight: 5}} >
                 {Store.FONT_FAMILIES.map(x => <option key={x} value={x}>{x}</option>)}
                 </Input>
 
                 <Input type="number"
-                       value={this.state.fontSize}
+                       value={this.state.settings.fontSize}
                        onChange={this.changeFontSize}
                        min="1"
                        style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
@@ -259,7 +390,7 @@ export default React.createClass({
 
                 <Input type="number"
                        label={<Glyphicon glyph="text-width" />}
-                       value={this.state.letterHSpacing}
+                       value={this.state.settings.letterHSpacing}
                        onChange={this.changeLetterHSpacing}
                        min="1"
                        style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
@@ -268,7 +399,7 @@ export default React.createClass({
 
                 <Input type="number"
                        label={<Glyphicon glyph="text-height" />}
-                       value={this.state.letterVSpacing}
+                       value={this.state.settings.letterVSpacing}
                        onChange={this.changeLetterVSpacing}
                        min="1"
                        style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
@@ -287,7 +418,7 @@ export default React.createClass({
           <Nav right onSelect={this.handleNavSelection}>
             <form className="navbar-form navbar-left">
                 <Input type="select"
-                       value={this.state.letterSet}
+                       value={this.state.settings.letterSet}
                        onChange={this.changeLetterSet}
                        style={{marginLeft: 8, marginRight: 5}}
                        >
@@ -302,7 +433,7 @@ export default React.createClass({
         </Navbar>
 
         <div style={{position: 'relative'}}>
-          <ColorOverlay color={this.state.overlayColor} />
+          <ColorOverlay color={this.state.settings.overlayColor} />
           <LetterBoard />
         </div>
 

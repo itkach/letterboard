@@ -7,5 +7,8 @@ export default Reflux.createActions([
   'setLetterHSpacing',
   'setLetterSet',
   'setOverlayColor',
-  'regenerate'
+  'regenerate',
+  'setProfile',
+  'saveProfile',
+  'deleteProfile'
 ]);
