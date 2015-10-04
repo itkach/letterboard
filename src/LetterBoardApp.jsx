@@ -308,7 +308,10 @@ export default React.createClass({
           </Modal.Body>
           <Modal.Footer>
             <Button onClick={this.hideDeleteConfirmation}>No</Button>
-            <Button onClick={this.confirmDelete}>Yes</Button>
+            <Button bsStyle="danger"
+                    onClick={this.confirmDelete}>
+              Yes
+            </Button>
           </Modal.Footer>
         </Modal>
 
@@ -334,7 +337,8 @@ export default React.createClass({
             <Button onClick={this.hideSaveAsDialog}>
               Cancel
             </Button>
-            <Button onClick={this.saveProfile}
+            <Button bsStyle="success"
+                    onClick={this.saveProfile}
                     disabled={!newProfileName || newProfileNameExists}>
               Ok
             </Button>
