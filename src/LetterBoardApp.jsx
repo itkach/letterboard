@@ -369,7 +369,7 @@ export default React.createClass({
 
         <Navbar fluid>
 
-          <Nav bsStyle="tabs" >
+          <Nav>
             <form className="navbar-form navbar-left" style={{paddingLeft: 0}}>
                 <Input type="select"
                        label={<Glyphicon glyph="user" />}
