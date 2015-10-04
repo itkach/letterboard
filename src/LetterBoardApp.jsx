@@ -304,7 +304,7 @@ export default React.createClass({
     keymaster('c', 'main', this.nextOverlayColor);
     keymaster('l', 'main', this.nextLetterSet);
     keymaster('f', 'main', this.nextFont);
-    keymaster('p', 'main', this.nextProfile);
+    keymaster('space', 'main', this.nextProfile);
     keymaster('n', 'main', this.showSaveAsDialog);
     keymaster('shift+d', 'main', this.showDeleteConfirmation);
     keymaster('enter', 'save-as-dialog', this.saveProfile);
