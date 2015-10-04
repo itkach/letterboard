@@ -35,9 +35,7 @@ export const Profiles = Reflux.createStore({
 
     const defaults = {
       current: DEFAULT_PROFILE_ID,
-      available: {[DEFAULT_PROFILE_ID]: 'Default',
-                  'default2': 'Default2'}
-
+      available: {[DEFAULT_PROFILE_ID]: 'Default'}
     };
 
     const data = storage.get('profiles', {});
