@@ -189,6 +189,10 @@ export default React.createClass({
   },
 
   showDeleteConfirmation() {
+    const profileId = this.state.profiles.current;
+    if (profileId === DEFAULT_PROFILE_ID) {
+      return;
+    }
     keymaster.setScope('delete-confirmation-dialog');
     this.setState({showDeleteConfirmation: true});
   },
