@@ -216,7 +216,7 @@ export default React.createClass({
   },
 
   nextValue(values, stateAttr, action) {
-    const current = values.indexOf(this.state[stateAttr]),
+    const current = values.indexOf(this.state.settings[stateAttr]),
           next = current + 1 < values.length ? current + 1 : 0;
     action(values[next]);
   },
