@@ -1,3 +1,4 @@
+import 'babel-core/polyfill';
 import React from 'react/addons';
 import Reflux from 'reflux';
 import keymaster from 'keymaster';
@@ -84,7 +85,19 @@ const ColorOverlay = React.createClass({
 
 });
 
-
+const profileComparator = (a, b) => {
+  const [aName, aId] = a, [bName, bId] = b;
+  if (aId === bId) {
+    return 0;
+  }
+  if (aId === DEFAULT_PROFILE_ID) {
+    return -1;
+  }
+  if (bId === DEFAULT_PROFILE_ID) {
+    return 1;
+  }
+  return aName.localeCompare(bName);
+};
 
 export default React.createClass({
 
@@ -254,6 +267,22 @@ export default React.createClass({
                    Actions.setFontFamily);
   },
 
+  nextProfile() {
+    console.log('Next profile');
+    const available = this.getAvailableProfiles(),
+          currentId = this.state.profiles.current;
+    available.every(([name, id], index, list) => {
+      console.log(currentId, id, name);
+      if (currentId === id) {
+        let next = index + 1 < list.length ? list[index + 1] : list[0],
+            nextId = next[1];
+        Actions.setProfile(nextId);
+        return false;
+      }
+      return true;
+    });
+  },
+
   setNewProfileName(e) {
     this.setState({newProfileName: e.target.value});
   },
@@ -288,11 +317,22 @@ export default React.createClass({
     keymaster('c', 'main', this.nextOverlayColor);
     keymaster('l', 'main', this.nextLetterSet);
     keymaster('f', 'main', this.nextFont);
+    keymaster('p', 'main', this.nextProfile);
     keymaster('n', 'main', this.showSaveAsDialog);
     keymaster('shift+d', 'main', this.showDeleteConfirmation);
     keymaster('enter', 'save-as-dialog', this.saveProfile);
     keymaster('enter', 'delete-confirmation-dialog', this.confirmDelete);
     keymaster.setScope('main');
+  },
+
+  getAvailableProfiles() {
+    const asObj = this.state.profiles.available,
+          result = [];
+    for (let id of Object.keys(asObj)) {
+      let name = asObj[id];
+      result.push([name, id]);
+    }
+    return result.sort(profileComparator);
   },
 
   render: function() {
@@ -301,9 +341,8 @@ export default React.createClass({
           profileId = this.state.profiles.current,
           profile = this.state.profiles.available[profileId],
           newProfileName = this.state.newProfileName,
-          profileNames = new Set(Object.keys(this.state.profiles.available).map(
-            id => this.state.profiles.available[id]
-          )),
+          availableProfiles = this.getAvailableProfiles(),
+          profileNames = new Map(availableProfiles),
           newProfileNameExists = profileNames.has(newProfileName);
 
     return (
@@ -382,11 +421,14 @@ export default React.createClass({
                        style={{marginLeft: 8}}
                        >
                 <optgroup label="Profiles">
-                  {Object.keys(this.state.profiles.available).map(
-                    id => <option key={id} value={id}>
-                    {this.state.profiles.available[id]}
-                    </option>
-                   )}
+                  {
+                    availableProfiles.map(
+                      ([name, id]) =>
+                        <option key={id} value={id}>
+                         {name}
+                        </option>
+                    )
+                  }
                 </optgroup>
                 <optgroup label="Manage" >
                   <option value="_new">New...</option>
