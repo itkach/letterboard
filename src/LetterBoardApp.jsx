@@ -22,6 +22,8 @@ import {
   Alert
 } from 'react-bootstrap';
 
+const defaultKeyFilter = keymaster.filter;
+
 
 function getAbsoluteURL(url) {
   const a = document.createElement('a');
@@ -171,19 +173,28 @@ export default React.createClass({
     }
   },
 
-  showSaveAsDialog() {
+  showSaveAsDialog(e) {
+    if (e) {
+      e.preventDefault();
+    }
     this.setState({showSaveAsDialog: true});
+    keymaster.filter = () => true;
+    keymaster.setScope('save-as-dialog');
   },
 
   hideSaveAsDialog() {
+    keymaster.filter = defaultKeyFilter;
+    keymaster.setScope('main');
     this.setState({showSaveAsDialog: false});
   },
 
   showDeleteConfirmation() {
+    keymaster.setScope('delete-confirmation-dialog');
     this.setState({showDeleteConfirmation: true});
   },
 
   hideDeleteConfirmation() {
+    keymaster.setScope('main');
     this.setState({showDeleteConfirmation: false});
   },
 
@@ -243,12 +254,18 @@ export default React.createClass({
     this.setState({newProfileName: e.target.value});
   },
 
-  confirmDelete() {
+  confirmDelete(e) {
+    if (e) {
+      e.preventDefault();
+    }
     this.hideDeleteConfirmation();
     Actions.deleteProfile(this.state.profiles.current);
   },
 
-  saveProfile() {
+  saveProfile(e) {
+    if (e) {
+      e.preventDefault();
+    }
     this.hideSaveAsDialog();
     const {newProfileName, settings} = this.state;
     Actions.saveProfile(newProfileName, settings);
@@ -256,17 +273,22 @@ export default React.createClass({
   },
 
   componentDidMount() {
-    keymaster('q', this.showHandBoardQR);
-    keymaster('shift+r', Actions.regenerate);
-    keymaster(']', this.increaseFontSize);
-    keymaster('[', this.decreaseFontSize);
-    keymaster('.', this.increaseLetterHSpacing);
-    keymaster(',', this.decreaseLetterHSpacing);
-    keymaster('\'', this.increaseLetterVSpacing);
-    keymaster(';', this.decreaseLetterVSpacing);
-    keymaster('c', this.nextOverlayColor);
-    keymaster('l', this.nextLetterSet);
-    keymaster('f', this.nextFont);
+    keymaster('q', 'main', this.showHandBoardQR);
+    keymaster('shift+r', 'main', Actions.regenerate);
+    keymaster(']', 'main', this.increaseFontSize);
+    keymaster('[', 'main', this.decreaseFontSize);
+    keymaster('.', 'main', this.increaseLetterHSpacing);
+    keymaster(',', 'main', this.decreaseLetterHSpacing);
+    keymaster('\'', 'main', this.increaseLetterVSpacing);
+    keymaster(';', 'main', this.decreaseLetterVSpacing);
+    keymaster('c', 'main', this.nextOverlayColor);
+    keymaster('l', 'main', this.nextLetterSet);
+    keymaster('f', 'main', this.nextFont);
+    keymaster('n', 'main', this.showSaveAsDialog);
+    keymaster('shift+d', 'main', this.showDeleteConfirmation);
+    keymaster('enter', 'save-as-dialog', this.saveProfile);
+    keymaster('enter', 'delete-confirmation-dialog', this.confirmDelete);
+    keymaster.setScope('main');
   },
 
   render: function() {
