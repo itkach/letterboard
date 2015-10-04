@@ -31,15 +31,14 @@ export const Profiles = Reflux.createStore({
 
   listenables: Actions,
 
+  defaults: {
+    current: DEFAULT_PROFILE_ID,
+    available: {[DEFAULT_PROFILE_ID]: 'Default'}
+  },
+
   init() {
-
-    const defaults = {
-      current: DEFAULT_PROFILE_ID,
-      available: {[DEFAULT_PROFILE_ID]: 'Default'}
-    };
-
     const data = storage.get('profiles', {});
-    this.data = {...defaults, ...data};
+    this.data = {...this.defaults, ...data};
   },
 
   getInitialState() {
@@ -51,7 +50,14 @@ export const Profiles = Reflux.createStore({
   },
 
   set data(newValue) {
-    this._data = newValue;
+    const available = newValue.available;
+    if (!available ||
+        Object.keys(available).length === 0) {
+      this._data = {...this.defaults};
+    }
+    else {
+      this._data = newValue;
+    }
     storage.set('profiles', this._data);
     this.trigger(this._data);
   },
@@ -68,9 +74,6 @@ export const Profiles = Reflux.createStore({
   },
 
   onDeleteProfile(id) {
-    if (id === DEFAULT_PROFILE_ID) {
-      return;
-    }
     storage.remove(profileStorageKey(id));
     const available = {...this.data.available};
     delete available[id];

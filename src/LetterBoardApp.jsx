@@ -5,7 +5,7 @@ import keymaster from 'keymaster';
 
 import LetterBoard from './LetterBoard.jsx';
 import Actions from './actions';
-import Store, {DEFAULT_PROFILE_ID} from './store';
+import Store from './store';
 import {Profiles} from './store';
 import QRCode from './QRCode.jsx';
 import If from './If.jsx';
@@ -86,16 +86,7 @@ const ColorOverlay = React.createClass({
 });
 
 const profileComparator = (a, b) => {
-  const [aName, aId] = a, [bName, bId] = b;
-  if (aId === bId) {
-    return 0;
-  }
-  if (aId === DEFAULT_PROFILE_ID) {
-    return -1;
-  }
-  if (bId === DEFAULT_PROFILE_ID) {
-    return 1;
-  }
+  const [aName] = a, [bName] = b;
   return aName.localeCompare(bName);
 };
 
@@ -202,10 +193,6 @@ export default React.createClass({
   },
 
   showDeleteConfirmation() {
-    const profileId = this.state.profiles.current;
-    if (profileId === DEFAULT_PROFILE_ID) {
-      return;
-    }
     keymaster.setScope('delete-confirmation-dialog');
     this.setState({showDeleteConfirmation: true});
   },
@@ -432,9 +419,7 @@ export default React.createClass({
                 </optgroup>
                 <optgroup label="Manage" >
                   <option value="_new">New...</option>
-                  <option value="_delete" disabled={profileId === DEFAULT_PROFILE_ID}>
-                    Delete...
-                  </option>
+                  <option value="_delete">Delete...</option>
                 </optgroup>
                 </Input>
             </form>
