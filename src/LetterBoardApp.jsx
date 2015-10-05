@@ -47,7 +47,9 @@ const OverlayToggleButton = React.createClass({
     const style = this.props.color ?
                   {backgroundColor: this.props.color, opacity: 0.3} : null;
     return (
-      <Button style={style} onTouchTap={this.onTouchTap}>
+      <Button style={style}
+              onTouchTap={this.onTouchTap}
+              disabled={this.props.disabled}>
         {'\u00A0'}
       </Button>
     );
@@ -292,6 +294,18 @@ export default React.createClass({
     this.setState({newProfileName: ''});
   },
 
+  toggleProfileLock(e) {
+    if (e) {
+      e.preventDefault();
+    }
+    if (this.state.settings.locked) {
+      Actions.unlockProfile();
+    }
+    else {
+      Actions.lockProfile();
+    }
+  },
+
   componentDidMount() {
     keymaster('q', 'main', this.showHandBoardQR);
     keymaster('shift+r', 'main', Actions.regenerate);
@@ -305,6 +319,7 @@ export default React.createClass({
     keymaster('l', 'main', this.nextLetterSet);
     keymaster('f', 'main', this.nextFont);
     keymaster('space', 'main', this.nextProfile);
+    keymaster('shift+l', 'main', this.toggleProfileLock);
     keymaster('n', 'main', this.showSaveAsDialog);
     keymaster('shift+d', 'main', this.showDeleteConfirmation);
     keymaster('enter', 'save-as-dialog', this.saveProfile);
@@ -330,7 +345,8 @@ export default React.createClass({
           newProfileName = this.state.newProfileName,
           availableProfiles = this.getAvailableProfiles(),
           profileNames = new Map(availableProfiles),
-          newProfileNameExists = profileNames.has(newProfileName);
+          newProfileNameExists = profileNames.has(newProfileName),
+          locked = this.state.settings.locked;
 
     return (
       <div>
@@ -377,7 +393,7 @@ export default React.createClass({
               <Input type="text"
                      autoFocus
                      value={this.state.newProfileName}
-                       onChange={this.setNewProfileName} />
+                     onChange={this.setNewProfileName} />
               <If test={newProfileNameExists}>
                 <Alert bsStyle="danger" onDismiss={this.handleAlertDismiss}>
                   Profile <em>{newProfileName}</em> already exists
@@ -399,28 +415,29 @@ export default React.createClass({
 
         <Navbar fluid>
 
-          <Nav>
-            <form className="navbar-form navbar-left" style={{paddingLeft: 0}}>
-                <Input type="select"
-                       label={<Glyphicon glyph="user" />}
-                       value={profileId}
-                       onChange={this.changeProfile}
-                       style={{marginLeft: 8}}
-                       >
-                <optgroup label="Profiles">
-                  {
-                    availableProfiles.map(
-                      ([name, id]) =>
-                        <option key={id} value={id}>
-                         {name}
-                        </option>
-                    )
-                  }
-                </optgroup>
-                <optgroup label="Manage" >
-                  <option value="_new">New...</option>
-                  <option value="_delete">Delete...</option>
-                </optgroup>
+          <Nav onSelect={(eventKey, event) => this.toggleProfileLock(event)}>
+            <NavItem eventKey={1}>{locked ? "🔒" : "🔓"}</NavItem>
+            <form className="navbar-form navbar-left"
+                  style={{paddingLeft: 0, marginLeft: 0}}>
+              <Input type="select"
+                     value={profileId}
+                     onChange={this.changeProfile}
+                     style={{marginLeft: 0}}
+              >
+              <optgroup label="Profiles">
+                {
+                  availableProfiles.map(
+                    ([name, id]) =>
+                      <option key={id} value={id}>
+                    {name}
+                      </option>
+                  )
+                }
+              </optgroup>
+              <optgroup label="Manage" >
+                <option value="_new">New...</option>
+                <option value="_delete">Delete...</option>
+              </optgroup>
                 </Input>
             </form>
           </Nav>
@@ -430,42 +447,48 @@ export default React.createClass({
               <div className="form-group">
 
                 <Input type="select"
+                       disabled={locked}
                        label={<Glyphicon glyph="font" />}
-                       value={this.state.settings.fontFamily}
-                       onChange={this.changeFontFamily}
-                       style={{marginLeft: 8, marginRight: 5}} >
+                                         value={this.state.settings.fontFamily}
+                                         onChange={this.changeFontFamily}
+                                         style={{marginLeft: 8, marginRight: 5}} >
                 {Store.FONT_FAMILIES.map(x => <option key={x} value={x}>{x}</option>)}
-                </Input>
+              </Input>
 
-                <Input type="number"
-                       value={this.state.settings.fontSize}
-                       onChange={this.changeFontSize}
-                       min="1"
-                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
-                />
-
-
-                <Input type="number"
-                       label={<Glyphicon glyph="text-width" />}
-                       value={this.state.settings.letterHSpacing}
-                       onChange={this.changeLetterHSpacing}
-                       min="1"
-                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
-                />
+              <Input type="number"
+                     disabled={locked}
+                     value={this.state.settings.fontSize}
+                     onChange={this.changeFontSize}
+                     min="1"
+                     style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
+              />
 
 
-                <Input type="number"
-                       label={<Glyphicon glyph="text-height" />}
-                       value={this.state.settings.letterVSpacing}
-                       onChange={this.changeLetterVSpacing}
-                       min="1"
-                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
-                />
+              <Input type="number"
+                     disabled={locked}
+                     label={<Glyphicon glyph="text-width" />}
+                                       value={this.state.settings.letterHSpacing}
+                                       onChange={this.changeLetterHSpacing}
+                                       min="1"
+                                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
+                            />
 
-                <ButtonGroup>
-                  {Store.OVERLAY_COLORS.map(
-                    x =><OverlayToggleButton key={x} color={x} />
-                   )}
+
+              <Input type="number"
+                     disabled={locked}
+                     label={<Glyphicon glyph="text-height" />}
+                                       value={this.state.settings.letterVSpacing}
+                                       onChange={this.changeLetterVSpacing}
+                                       min="1"
+                                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
+                            />
+
+              <ButtonGroup>
+                {
+                  Store.OVERLAY_COLORS.map(
+                    x => <OverlayToggleButton key={x} color={x} disabled={locked} />
+                  )
+                }
                 </ButtonGroup>
 
               </div>
@@ -475,13 +498,16 @@ export default React.createClass({
           <Nav right onSelect={this.handleNavSelection}>
             <form className="navbar-form navbar-left">
                 <Input type="select"
+                       disabled={locked}
                        value={this.state.settings.letterSet}
                        onChange={this.changeLetterSet}
                        style={{marginLeft: 8, marginRight: 5}}
                        >
-                {Store.LETTER_SETS.map(
-                  s => <option key={s} value={s}>{s.substr(0, 6)}</option>
-                 )}
+                {
+                  Store.LETTER_SETS.map(
+                    s => <option key={s} value={s}>{s.substr(0, 6)}</option>
+                  )
+                }
                 </Input>
             </form>
             <NavItem eventKey={1}><Glyphicon glyph="qrcode" /></NavItem>

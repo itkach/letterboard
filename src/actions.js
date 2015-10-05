@@ -10,5 +10,7 @@ export default Reflux.createActions([
   'regenerate',
   'setProfile',
   'saveProfile',
-  'deleteProfile'
+  'deleteProfile',
+  'lockProfile',
+  'unlockProfile'
 ]);

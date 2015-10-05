@@ -164,28 +164,54 @@ export default Reflux.createStore({
   },
 
   onSetFontSize(fontSize) {
+    if (this.data.locked) {
+      return;
+    }
     this.data = {...this.data, fontSize};
   },
 
   onSetFontFamily(fontFamily) {
+    if (this.data.locked) {
+      return;
+    }
     this.data = {...this.data, fontFamily};
   },
 
   onSetLetterVSpacing(letterVSpacing) {
+    if (this.data.locked) {
+      return;
+    }
     this.data = {...this.data, letterVSpacing};
   },
 
   onSetLetterHSpacing(letterHSpacing) {
+    if (this.data.locked) {
+      return;
+    }
     this.data = {...this.data, letterHSpacing};
   },
 
   onSetLetterSet(letterSet) {
+    if (this.data.locked) {
+      return;
+    }
     const letters = generate(letterSet);
     this.data = {...this.data, letterSet, letters};
   },
 
   onSetOverlayColor(overlayColor) {
+    if (this.data.locked) {
+      return;
+    }
     this.data = {...this.data, overlayColor};
+  },
+
+  onLockProfile() {
+    this.data = {...this.data, locked: true};
+  },
+
+  onUnlockProfile() {
+    this.data = {...this.data, locked: false};
   }
 
 });
