@@ -1,8 +1,11 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'font-awesome/css/font-awesome.css';
 import './style.css';
 
 import React from 'react/addons';
 import Reflux from 'reflux';
+import Icon from 'react-fontawesome';
+
 import {randomInt} from './randomize';
 import localstorage from './localstorage';
 import HandBoard from './HandBoard.jsx';
@@ -13,7 +16,6 @@ import keymaster from 'keymaster';
 
 import {
   Button,
-  Glyphicon,
   Modal
 } from 'react-bootstrap';
 
@@ -221,9 +223,9 @@ const PlayButton = React.createClass({
     return (
       <div style={{fontSize: '16vh'}}>
         {'\u200B'}
-        <Glyphicon glyph="play"
-                   style={{cursor: 'pointer'}}
-                   onTouchTap={this.onTouchTap} />
+        <Icon name="play"
+              style={{cursor: 'pointer'}}
+              onTouchTap={this.onTouchTap} />
       </div>
     );
   }
@@ -239,7 +241,7 @@ const WellDone = React.createClass({
   render: function() {
     return (
       <div style={{fontSize: '16vh', color: 'green'}}>
-        <Glyphicon glyph="check" />
+        <Icon name="check" />
       </div>
     );
   }
@@ -356,14 +358,14 @@ const HandBoardApp = React.createClass({
         <Button onTouchTap={this.togglePause}
                 style={{position: 'absolute', margin: '0.5rem'}}>
           <If test={!this.state.done}>
-            <Glyphicon glyph={this.state.paused ? 'play' : 'pause'} />
+            <Icon name={this.state.paused ? 'play' : 'pause'} />
           </If>
            <Elapsed value={this.state.elapsed} />
         </Button>
 
         <Button onTouchTap={this.showConfirmReset}
                 style={{position: 'absolute', right: 0, margin: '0.5rem'}}>
-          <Glyphicon glyph="refresh" />
+          <Icon name="refresh" />
         </Button>
 
 

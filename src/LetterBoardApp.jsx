@@ -2,7 +2,7 @@ import 'babel-core/polyfill';
 import React from 'react/addons';
 import Reflux from 'reflux';
 import keymaster from 'keymaster';
-
+import Icon from 'react-fontawesome';
 import LetterBoard from './LetterBoard.jsx';
 import Actions from './actions';
 import Store from './store';
@@ -18,7 +18,6 @@ import {
   Button,
   ButtonGroup,
   Input,
-  Glyphicon,
   Modal,
   Alert
 } from 'react-bootstrap';
@@ -416,7 +415,7 @@ export default React.createClass({
         <Navbar fluid>
 
           <Nav onSelect={(eventKey, event) => this.toggleProfileLock(event)}>
-            <NavItem eventKey={1}>{locked ? "🔒" : "🔓"}</NavItem>
+            <NavItem eventKey={1}><Icon name={locked ? "lock" : "unlock"}/></NavItem>
             <form className="navbar-form navbar-left"
                   style={{paddingLeft: 0, marginLeft: 0}}>
               <Input type="select"
@@ -448,10 +447,10 @@ export default React.createClass({
 
                 <Input type="select"
                        disabled={locked}
-                       label={<Glyphicon glyph="font" />}
-                                         value={this.state.settings.fontFamily}
-                                         onChange={this.changeFontFamily}
-                                         style={{marginLeft: 8, marginRight: 5}} >
+                       label={<Icon name="font" />}
+                       value={this.state.settings.fontFamily}
+                       onChange={this.changeFontFamily}
+                       style={{marginLeft: 8, marginRight: 5}} >
                 {Store.FONT_FAMILIES.map(x => <option key={x} value={x}>{x}</option>)}
               </Input>
 
@@ -466,21 +465,21 @@ export default React.createClass({
 
               <Input type="number"
                      disabled={locked}
-                     label={<Glyphicon glyph="text-width" />}
-                                       value={this.state.settings.letterHSpacing}
-                                       onChange={this.changeLetterHSpacing}
-                                       min="1"
-                                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
+                     label={<Icon name="text-width" />}
+                                  value={this.state.settings.letterHSpacing}
+                                  onChange={this.changeLetterHSpacing}
+                                  min="1"
+                                  style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
                             />
 
 
               <Input type="number"
                      disabled={locked}
-                     label={<Glyphicon glyph="text-height" />}
-                                       value={this.state.settings.letterVSpacing}
-                                       onChange={this.changeLetterVSpacing}
-                                       min="1"
-                                       style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
+                     label={<Icon name="text-height" />}
+                                  value={this.state.settings.letterVSpacing}
+                                  onChange={this.changeLetterVSpacing}
+                                  min="1"
+                                  style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
                             />
 
               <ButtonGroup>
@@ -510,8 +509,8 @@ export default React.createClass({
                 }
                 </Input>
             </form>
-            <NavItem eventKey={1}><Glyphicon glyph="qrcode" /></NavItem>
-            <NavItem eventKey={2}><Glyphicon glyph="refresh" /></NavItem>
+            <NavItem eventKey={1}><Icon name="qrcode" /></NavItem>
+            <NavItem eventKey={2}><Icon name="refresh" /></NavItem>
           </Nav>
         </Navbar>
 
