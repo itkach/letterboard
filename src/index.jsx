@@ -3,9 +3,11 @@ import 'font-awesome/css/font-awesome.css';
 import './style.css';
 
 import React from 'react/addons';
+import initTapEventPlugin from 'react-tap-event-plugin';
 
 import LetterBoardApp from './LetterBoardApp.jsx';
 
+initTapEventPlugin();
 
 const Root = React.createClass({
 
