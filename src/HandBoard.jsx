@@ -1,91 +1,6 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-
-const TR = React.createClass({
-
-  mixins: [
-    PureRenderMixin
-  ],
-
-  render() {
-
-    const style = {
-      textAlign: 'center',
-      ...this.props.style
-    };
-
-    return (
-      <tr style={style}>
-        {this.props.children}
-      </tr>
-    );
-  }
-
-});
-
-
-const Letter = React.createClass({
-
-  mixins: [
-    PureRenderMixin
-  ],
-
-  render() {
-
-    const {char, shown} = this.props.letter;
-
-    return (
-      <td style={{verticalAlign: 'baseline',
-                  cursor: this.props.onTouchTap ? 'pointer' : null,
-                  ...this.props.style}}
-          onTouchTap={this.props.onTouchTap}>
-        <div style={{opacity: shown ? 1 : 0}}>
-          {char}
-        </div>
-      </td>
-    );
-  }
-
-});
-
-
-const LARGE_SMALL_RATIO = 1.28;
-
-const LetterRow = React.createClass({
-
-  mixins: [
-    PureRenderMixin
-  ],
-
-  onLetterTap(colIndex, event) {
-    if (this.props.onTouchTap) {
-      this.props.onTouchTap(colIndex, event);
-    }
-  },
-
-  createItem(letter, index) {
-    const small = index % 2 === 1,
-          style = {
-            fontSize: small ? '100%' : '' + LARGE_SMALL_RATIO * 100 + '%',
-            padding: 0,
-            border: 'thin solid grey'
-          };
-    style.paddingRight = style.paddingLeft = this.props.hSpacing / 2;
-    style.paddingTop = style.paddingBottom = this.props.vSpacing / 2;
-    return <Letter key={index} letter={letter}
-                   style={style}
-                   onTouchTap={this.onLetterTap.bind(this, index)} />;
-  },
-
-  render() {
-    return (
-      <TR style={this.props.style}>
-        {this.props.letters.map(this.createItem)}
-      </TR>
-    );
-  }
-
-});
+import LetterRow from './LetterRow.jsx';
 
 
 export default React.createClass({
@@ -120,6 +35,7 @@ export default React.createClass({
                            hSpacing={0}
                            vSpacing={0}
                            onTouchTap={this.onRowTap.bind(this, i)}
+                           showBorder
                 />);
     }
 

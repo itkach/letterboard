@@ -469,7 +469,7 @@ const App = React.createClass({
                      label={<Icon name="text-width" />}
                                   value={this.state.settings.letterHSpacing}
                                   onChange={this.changeLetterHSpacing}
-                                  min="1"
+                                  min="0"
                                   style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
                             />
 
@@ -479,7 +479,7 @@ const App = React.createClass({
                      label={<Icon name="text-height" />}
                                   value={this.state.settings.letterVSpacing}
                                   onChange={this.changeLetterVSpacing}
-                                  min="1"
+                                  min="0"
                                   style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
                             />
 
