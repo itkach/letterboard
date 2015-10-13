@@ -126,8 +126,8 @@ const Store = Reflux.createStore({
     this.data = {...this.data, paused: false};
   },
 
-  onNextLetter() {
-    if (this.data.currentLetter) {
+  onNextLetter(override) {
+    if (this.data.currentLetter && !override) {
       return;
     }
     const remainingLetters = [...this.data.remainingLetters],
@@ -152,10 +152,8 @@ const Store = Reflux.createStore({
     console.debug('Selected index', index, 'should be', currentLetter.index);
     if (currentLetter.index === index) {
       placedLetters[index] = {char: currentLetter.char, shown: true};
-      this.data = {...this.data,
-                   currentLetter: null,
-                   placedLetters};
-      Actions.nextLetter();
+      this.data = {...this.data, placedLetters};
+      Actions.nextLetter(true);
     }
   }
 
