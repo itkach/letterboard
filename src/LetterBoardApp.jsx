@@ -1,6 +1,7 @@
 import 'babel-core/polyfill';
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 import keymaster from 'keymaster';
 import Icon from 'react-fontawesome';
 import LetterBoard from './LetterBoard.jsx';
@@ -9,7 +10,7 @@ import Store from './store';
 import {Profiles} from './store';
 import QRCode from './QRCode.jsx';
 import If from './If.jsx';
-
+import run from './run';
 
 import {
   Navbar,
@@ -35,7 +36,7 @@ function getAbsoluteURL(url) {
 const OverlayToggleButton = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   onTouchTap() {
@@ -61,7 +62,7 @@ const OverlayToggleButton = React.createClass({
 const ColorOverlay = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   render: function() {
@@ -91,10 +92,10 @@ const profileComparator = (a, b) => {
   return aName.localeCompare(bName);
 };
 
-export default React.createClass({
+const App = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin,
+    PureRenderMixin,
     Reflux.connect(Store, 'settings'),
     Reflux.connect(Profiles, 'profiles')
   ],
@@ -523,3 +524,5 @@ export default React.createClass({
     );
   }
 });
+
+run(App);

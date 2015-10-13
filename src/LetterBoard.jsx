@@ -1,4 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 import Reflux from 'reflux';
 import Store from './store';
 
@@ -6,7 +7,7 @@ import Store from './store';
 const TR = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   render() {
@@ -29,7 +30,7 @@ const TR = React.createClass({
 const Letter = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   render() {
@@ -48,7 +49,7 @@ const LARGE_SMALL_RATIO = 1.28;
 const LetterRow = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   createItem(char, index) {
@@ -76,7 +77,7 @@ const LetterRow = React.createClass({
 export default React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin,
+    PureRenderMixin,
     Reflux.connect(Store)
   ],
 

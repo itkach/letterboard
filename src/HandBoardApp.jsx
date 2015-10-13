@@ -2,7 +2,8 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'font-awesome/css/font-awesome.css';
 import './style.css';
 
-import React from 'react/addons';
+import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 import Reflux from 'reflux';
 import Icon from 'react-fontawesome';
 
@@ -13,6 +14,8 @@ import If from './If.jsx';
 
 import initTapEventPlugin from 'react-tap-event-plugin';
 import keymaster from 'keymaster';
+
+import run from './run';
 
 import {
   Button,
@@ -161,7 +164,7 @@ const Store = Reflux.createStore({
 const CurrentLetter = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   styleSmall: {
@@ -210,7 +213,7 @@ const CurrentLetter = React.createClass({
 const PlayButton = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   onTouchTap() {
@@ -235,7 +238,7 @@ const PlayButton = React.createClass({
 const WellDone = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   render: function() {
@@ -251,7 +254,7 @@ const WellDone = React.createClass({
 const Elapsed = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   pad(value) {
@@ -282,7 +285,7 @@ const Elapsed = React.createClass({
 const HandBoardApp = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin,
+    PureRenderMixin,
     Reflux.connect(Store)
   ],
 
@@ -405,7 +408,7 @@ const HandBoardApp = React.createClass({
 const Root = React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   render: function() {
@@ -430,13 +433,5 @@ const Root = React.createClass({
   }
 });
 
-function main() {
-  React.render(<Root />, document.body);
-}
 
-if (document.readyState === "complete") {
-  main();
-}
-else {
-  document.addEventListener("DOMContentLoaded", main, false);
-}
+run(Root);

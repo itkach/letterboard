@@ -1,11 +1,12 @@
-import React from 'react/addons';
+import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 import Halogen from 'halogen';
 import WorkerLoader from 'worker!./qrcode-worker.js';
 
 export default React.createClass({
 
   mixins: [
-    React.addons.PureRenderMixin
+    PureRenderMixin
   ],
 
   getDefaultProps() {
