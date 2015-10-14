@@ -3,7 +3,7 @@ export default ({onTouchTap, style, letter: {char, shown}}) =>
               cursor: onTouchTap ? 'pointer' : null,
                   ...style}}
       onTouchTap={onTouchTap} >
-    <div style={{opacity: shown ? 1 : 0.3}}>
+    <div style={{opacity: shown ? 1 : 0}}>
       {char}
     </div>
   </td>
