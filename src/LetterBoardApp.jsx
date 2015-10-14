@@ -346,7 +346,8 @@ const App = React.createClass({
           availableProfiles = this.getAvailableProfiles(),
           profileNames = new Map(availableProfiles),
           newProfileNameExists = profileNames.has(newProfileName),
-          locked = this.state.settings.locked;
+          locked = this.state.settings.locked,
+          letters = this.state.settings.letters.map(letter => ({char: letter, shown: true}));
 
     return (
       <div>
@@ -517,7 +518,8 @@ const App = React.createClass({
 
         <div style={{position: 'relative'}}>
           <ColorOverlay color={this.state.settings.overlayColor} />
-          <LetterBoard />
+          <LetterBoard {...this.state.settings}
+                       letters = {letters} />
         </div>
 
       </div>

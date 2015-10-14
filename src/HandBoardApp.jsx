@@ -9,7 +9,7 @@ import Icon from 'react-fontawesome';
 
 import {randomInt} from './randomize';
 import localstorage from './localstorage';
-import HandBoard from './HandBoard.jsx';
+import LetterBoard from './LetterBoard.jsx';
 import If from './If.jsx';
 
 import initTapEventPlugin from 'react-tap-event-plugin';
@@ -384,10 +384,13 @@ const HandBoardApp = React.createClass({
             </If>
           </div>
           <div>
-            <HandBoard letters={this.state.placedLetters}
-                       fontFamily={this.state.fontFamily}
-                       columnCount={this.state.columnCount}
-                       onPlaceSelected={this.placeLetter}
+            <LetterBoard letters={this.state.placedLetters}
+                         fontFamily={this.state.fontFamily}
+                         columnCount={this.state.columnCount}
+                         onSelection={this.placeLetter}
+                         style={{width: '100%'}}
+                         fontSize='5vw'
+                         showBorder
             />
           </div>
           <div style={{height: '0.5rem',
