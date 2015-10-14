@@ -1,7 +1,6 @@
 import 'babel-core/polyfill';
 import React from 'react';
 import Reflux from 'reflux';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
 import keymaster from 'keymaster';
 import Icon from 'react-fontawesome';
 import LetterBoard from './LetterBoard.jsx';
@@ -23,90 +22,235 @@ import {
   Alert
 } from 'react-bootstrap';
 
+
 const defaultKeyFilter = keymaster.filter;
 
 
-function getAbsoluteURL(url) {
+const getAbsoluteURL = url => {
   const a = document.createElement('a');
   a.href = url;
   return a.href;
-}
+};
 
 
-const OverlayToggleButton = React.createClass({
+const NBSP = '\u00A0';
 
-  mixins: [
-    PureRenderMixin
-  ],
 
-  onTouchTap() {
-    Actions.setOverlayColor(this.props.color);
-  },
+const OverlayToggleButton = ({color, disabled}) =>
+  <Button style={{backgroundColor: color, opacity: color ? 0.3 : null}}
+          onTouchTap={() => Actions.setOverlayColor(color)}
+          disabled={disabled}>
+    {NBSP}
+  </Button>
+;
 
-  render: function() {
-    const style = this.props.color ?
-                  {backgroundColor: this.props.color, opacity: 0.3} : null;
-    return (
-      <Button style={style}
-              onTouchTap={this.onTouchTap}
-              disabled={this.props.disabled}>
-        {'\u00A0'}
+
+const ColorOverlay = ({color}) =>
+  <div style={{zIndex: 1000,
+               backgroundColor: color,
+               position: 'absolute',
+               top: 0,
+               bottom: 0,
+               left: 0,
+               right: 0,
+               opacity: 0.4,
+               width: '100%'}} />
+;
+
+
+const OpenHandBoardDialog = ({show, url, onHide, onOpenLink}) =>
+  <Modal show={show} onHide={onHide}>
+    <Modal.Header closeButton>
+      <Modal.Title>Hand Board Link</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <div style={{textAlign: 'center'}}>
+        <QRCode size={'50vmin'} text={url} />
+      </div>
+    </Modal.Body>
+    <Modal.Footer>
+      <Button onClick={() => onOpenLink(url)}>Open Link</Button>
+    </Modal.Footer>
+  </Modal>
+;
+
+
+const DeleteConfirmationDialog = ({show, profile, onHide, onConfirm}) =>
+  <Modal show={show}
+         onHide={onHide}>
+    <Modal.Header closeButton>
+      <Modal.Title>Delete {profile}</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <div style={{textAlign: 'center'}}>
+        Are you sure you want to delete profile <em>{profile}</em>?
+      </div>
+    </Modal.Body>
+    <Modal.Footer>
+      <Button onClick={onHide}>No</Button>
+      <Button bsStyle="danger" onClick={onConfirm}>Yes</Button>
+    </Modal.Footer>
+  </Modal>
+;
+
+
+const NewProfileDialog = ({show, name, exists, onChange, onHide, onSave}) =>
+  <Modal show={show} onHide={onHide}>
+    <Modal.Header closeButton>
+      <Modal.Title>Create New Profile</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <div style={{textAlign: 'center'}}>
+        <Input type="text" autoFocus value={name} onChange={onChange} />
+        <If test={exists}>
+          <Alert bsStyle="danger">
+            Profile <em>{name}</em> already exists
+          </Alert>
+        </If>
+      </div>
+    </Modal.Body>
+    <Modal.Footer>
+      <Button onClick={onHide}>Cancel</Button>
+      <Button bsStyle="success" onClick={onSave}
+              disabled={!name || exists}>
+        Ok
       </Button>
-    );
-
-  }
-
-});
+    </Modal.Footer>
+  </Modal>
+;
 
 
-const ColorOverlay = React.createClass({
+const ProfileSelector = ({profiles, profileId, onChange}) =>
+  <form className="navbar-form navbar-left"
+        style={{paddingLeft: 0, marginLeft: 0}}>
+    <Input type="select"
+           value={profileId}
+           onChange={onChange}
+           style={{marginLeft: 0}} >
+    <optgroup label="Profiles">
+      {
+        profiles.map(
+          ([name, id]) => <option key={id} value={id}>{name}</option>
+        )
+      }
+    </optgroup>
+    <optgroup label="Manage" >
+      <option value="_new">New...</option>
+      <option value="_delete">Delete...</option>
+    </optgroup>
+      </Input>
+  </form>
+;
 
-  mixins: [
-    PureRenderMixin
-  ],
 
-  render: function() {
+const OverlayColorSelector = ({locked}) =>
+  <ButtonGroup>
+    {
+      Store.OVERLAY_COLORS.map(
+        x => <OverlayToggleButton key={x} color={x} disabled={locked} />
+      )
+    }
+  </ButtonGroup>
+;
 
-    const style = {
-      zIndex: 1000,
-      backgroundColor: this.props.color,
-      position: 'absolute',
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      opacity: 0.4,
-      width: '100%'
-    };
 
-    return (
-      <div style={style} />
-    );
+const SettingsEditor = ({settings, locked}) => {
 
-  }
+  const labelStyle = {marginLeft: 8, marginRight: 20, maxWidth: '7rem'},
+        changeFontFamily = e => {
+          Actions.setFontFamily(e.target.value);
+        },
+        changeFontSize =  e => {
+          const fontSize = parseFloat(e.target.value);
+          Actions.setFontSize(fontSize);
+        },
+        changeLetterHSpacing = e => {
+          const value = parseFloat(e.target.value);
+          Actions.setLetterHSpacing(value);
+        },
+        changeLetterVSpacing = e => {
+          const value = parseFloat(e.target.value);
+          Actions.setLetterVSpacing(value);
+        };
 
-});
+
+  return (
+    <form className="navbar-form navbar-left">
+      <div className="form-group">
+
+        <Input type="select"
+               disabled={locked}
+               label={<Icon name="font" />}
+                            value={settings.fontFamily}
+                            onChange={changeFontFamily}
+                            style={{marginLeft: 8, marginRight: 5}} >
+        {Store.FONT_FAMILIES.map(x => <option key={x} value={x}>{x}</option>)}
+        </Input>
+
+        <Input type="number"
+               disabled={locked}
+               value={settings.fontSize}
+               onChange={changeFontSize}
+               min="1"
+               style={labelStyle} />
+
+
+        <Input type="number"
+               disabled={locked}
+               label={<Icon name="text-width" />}
+                            value={settings.letterHSpacing}
+                            onChange={changeLetterHSpacing}
+                            min="0"
+                            style={labelStyle} />
+
+
+        <Input type="number"
+               disabled={locked}
+               label={<Icon name="text-height" />}
+                            value={settings.letterVSpacing}
+                            onChange={changeLetterVSpacing}
+                            min="0"
+                            style={labelStyle} />
+
+        <OverlayColorSelector locked={locked} />
+
+      </div>
+    </form>
+  );
+};
+
+
+const LetterSetSelector = ({settings, locked}) =>
+  <form className="navbar-form navbar-left">
+    <Input type="select"
+           disabled={locked}
+           value={settings.letterSet}
+           onChange={e => Actions.setLetterSet(e.target.value)} >
+      {
+        Store.LETTER_SETS.map(
+          s => <option key={s} value={s}>{s.substr(0, 6)}</option>
+        )
+      }
+    </Input>
+  </form>
+;
+
 
 const profileComparator = (a, b) => {
   const [aName] = a, [bName] = b;
   return aName.localeCompare(bName);
 };
 
+
 const App = React.createClass({
 
   mixins: [
-    PureRenderMixin,
     Reflux.connect(Store, 'settings'),
     Reflux.connect(Profiles, 'profiles')
   ],
 
   regenerate() {
     Actions.regenerate();
-  },
-
-  changeLetterVSpacing(e) {
-    const value = parseFloat(e.target.value);
-    Actions.setLetterVSpacing(value);
   },
 
   increaseLetterVSpacing() {
@@ -121,11 +265,6 @@ const App = React.createClass({
     }
   },
 
-  changeLetterHSpacing(e) {
-    const value = parseFloat(e.target.value);
-    Actions.setLetterHSpacing(value);
-  },
-
   increaseLetterHSpacing() {
     const value = this.state.settings.letterHSpacing + 1;
     Actions.setLetterHSpacing(value);
@@ -138,11 +277,6 @@ const App = React.createClass({
     }
   },
 
-  changeFontSize(e) {
-    const fontSize = parseFloat(e.target.value);
-    Actions.setFontSize(fontSize);
-  },
-
   increaseFontSize() {
     const fontSize = this.state.settings.fontSize + 1;
     Actions.setFontSize(fontSize);
@@ -153,15 +287,6 @@ const App = React.createClass({
     if (fontSize > 0) {
       Actions.setFontSize(fontSize);
     }
-  },
-
-  changeFontFamily(e) {
-    console.log('changeFontFamily', e.target.value);
-    Actions.setFontFamily(e.target.value);
-  },
-
-  changeLetterSet(e) {
-    Actions.setLetterSet(e.target.value);
   },
 
   changeProfile(e) {
@@ -351,175 +476,48 @@ const App = React.createClass({
 
     return (
       <div>
-        <Modal show={this.state.showQR} onHide={this.hideHandBoardQR}>
-          <Modal.Header closeButton>
-            <Modal.Title>Hand Board Link</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div style={{textAlign: 'center'}}>
-              <QRCode size={'50vmin'} text={url} />
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={this.openHandBoardLink.bind(this, url)}>Open Link</Button>
-          </Modal.Footer>
-        </Modal>
 
-        <Modal show={this.state.showDeleteConfirmation}
-               onHide={this.hideDeleteConfirmation}>
-          <Modal.Header closeButton>
-            <Modal.Title>Delete {profile}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div style={{textAlign: 'center'}}>
-              Are you sure you want to delete profile <em>{profile}</em>?
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={this.hideDeleteConfirmation}>No</Button>
-            <Button bsStyle="danger"
-                    onClick={this.confirmDelete}>
-              Yes
-            </Button>
-          </Modal.Footer>
-        </Modal>
+        <OpenHandBoardDialog show={this.state.showQR}
+                             url={url}
+                             onHide={this.hideHandBoardQR}
+                             onOpenLink={this.openHandBoardLink} />
 
-        <Modal show={this.state.showSaveAsDialog}
-               onHide={this.hideSaveAsDialog}>
-          <Modal.Header closeButton>
-            <Modal.Title>Create New Profile</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div style={{textAlign: 'center'}}>
-              <Input type="text"
-                     autoFocus
-                     value={this.state.newProfileName}
-                     onChange={this.setNewProfileName} />
-              <If test={newProfileNameExists}>
-                <Alert bsStyle="danger" onDismiss={this.handleAlertDismiss}>
-                  Profile <em>{newProfileName}</em> already exists
-                </Alert>
-              </If>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={this.hideSaveAsDialog}>
-              Cancel
-            </Button>
-            <Button bsStyle="success"
-                    onClick={this.saveProfile}
-                    disabled={!newProfileName || newProfileNameExists}>
-              Ok
-            </Button>
-          </Modal.Footer>
-        </Modal>
+        <DeleteConfirmationDialog show={this.state.showDeleteConfirmation}
+                                  profile={profile}
+                                  onHide={this.hideDeleteConfirmation}
+                                  onConfirm={this.confirmDelete} />
+
+        <NewProfileDialog show={this.state.showSaveAsDialog}
+                          onHide={this.hideSaveAsDialog}
+                          name={this.state.newProfileName}
+                          exists={newProfileNameExists}
+                          onChange={this.setNewProfileName}
+                          onSave={this.saveProfile} />
 
         <Navbar fluid>
 
           <Nav onSelect={(eventKey, event) => this.toggleProfileLock(event)}>
             <NavItem eventKey={1}><Icon name={locked ? "lock" : "unlock"}/></NavItem>
-            <form className="navbar-form navbar-left"
-                  style={{paddingLeft: 0, marginLeft: 0}}>
-              <Input type="select"
-                     value={profileId}
-                     onChange={this.changeProfile}
-                     style={{marginLeft: 0}}
-              >
-              <optgroup label="Profiles">
-                {
-                  availableProfiles.map(
-                    ([name, id]) =>
-                      <option key={id} value={id}>
-                    {name}
-                      </option>
-                  )
-                }
-              </optgroup>
-              <optgroup label="Manage" >
-                <option value="_new">New...</option>
-                <option value="_delete">Delete...</option>
-              </optgroup>
-                </Input>
-            </form>
+            <ProfileSelector profiles={availableProfiles}
+                             profileId={profileId}
+                             onChange={this.changeProfile} />
           </Nav>
 
           <Nav>
-            <form className="navbar-form navbar-left">
-              <div className="form-group">
-
-                <Input type="select"
-                       disabled={locked}
-                       label={<Icon name="font" />}
-                       value={this.state.settings.fontFamily}
-                       onChange={this.changeFontFamily}
-                       style={{marginLeft: 8, marginRight: 5}} >
-                {Store.FONT_FAMILIES.map(x => <option key={x} value={x}>{x}</option>)}
-              </Input>
-
-              <Input type="number"
-                     disabled={locked}
-                     value={this.state.settings.fontSize}
-                     onChange={this.changeFontSize}
-                     min="1"
-                     style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
-              />
-
-
-              <Input type="number"
-                     disabled={locked}
-                     label={<Icon name="text-width" />}
-                                  value={this.state.settings.letterHSpacing}
-                                  onChange={this.changeLetterHSpacing}
-                                  min="0"
-                                  style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
-                            />
-
-
-              <Input type="number"
-                     disabled={locked}
-                     label={<Icon name="text-height" />}
-                                  value={this.state.settings.letterVSpacing}
-                                  onChange={this.changeLetterVSpacing}
-                                  min="0"
-                                  style={{marginLeft: 8, marginRight: 20, maxWidth: '7rem'}}
-                            />
-
-              <ButtonGroup>
-                {
-                  Store.OVERLAY_COLORS.map(
-                    x => <OverlayToggleButton key={x} color={x} disabled={locked} />
-                  )
-                }
-                </ButtonGroup>
-
-              </div>
-            </form>
-
+            <SettingsEditor settings={this.state.settings} locked={locked} />
           </Nav>
+
           <Nav right onSelect={this.handleNavSelection}>
-            <form className="navbar-form navbar-left">
-                <Input type="select"
-                       disabled={locked}
-                       value={this.state.settings.letterSet}
-                       onChange={this.changeLetterSet}
-                       style={{marginLeft: 8, marginRight: 5}}
-                       >
-                {
-                  Store.LETTER_SETS.map(
-                    s => <option key={s} value={s}>{s.substr(0, 6)}</option>
-                  )
-                }
-                </Input>
-            </form>
+            <LetterSetSelector settings={this.state.settings} locked={locked} />
             <NavItem eventKey={1}><Icon name="qrcode" /></NavItem>
             <NavItem eventKey={2}><Icon name="refresh" /></NavItem>
           </Nav>
+
         </Navbar>
 
         <div style={{position: 'relative'}}>
           <ColorOverlay color={this.state.settings.overlayColor} />
-          <LetterBoard {...this.state.settings}
-                       letters = {letters} />
+          <LetterBoard {...this.state.settings} letters = {letters} />
         </div>
 
       </div>
