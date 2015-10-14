@@ -6,9 +6,8 @@ import uuid from 'uuid';
 
 const storage = localstorage('letterboard');
 
-const LETTERS = 'ABCDEFGHIJKLNOPRSTUVWXYZ';
 
-const generate = (letterSet = LETTERS) => {
+const generate = letterSet => {
   const large = randomize(letterSet),
         small = randomize(letterSet),
         count = large.length,
