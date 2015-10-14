@@ -465,14 +465,14 @@ const App = React.createClass({
   render: function() {
 
     const url = this.getHandBoardURL(),
-          profileId = this.state.profiles.current,
-          profile = this.state.profiles.available[profileId],
-          newProfileName = this.state.newProfileName,
+          {profiles, newProfileName, settings} = this.state,
+          profileId = profiles.current,
+          profile = profiles.available[profileId],
           availableProfiles = this.getAvailableProfiles(),
           profileNames = new Map(availableProfiles),
           newProfileNameExists = profileNames.has(newProfileName),
-          locked = this.state.settings.locked,
-          letters = this.state.settings.letters.map(letter => ({char: letter, shown: true}));
+          locked = settings.locked,
+          letters = settings.letters.map(letter => ({char: letter, shown: true}));
 
     return (
       <div>
@@ -489,7 +489,7 @@ const App = React.createClass({
 
         <NewProfileDialog show={this.state.showSaveAsDialog}
                           onHide={this.hideSaveAsDialog}
-                          name={this.state.newProfileName}
+                          name={newProfileName}
                           exists={newProfileNameExists}
                           onChange={this.setNewProfileName}
                           onSave={this.saveProfile} />
@@ -504,11 +504,11 @@ const App = React.createClass({
           </Nav>
 
           <Nav>
-            <SettingsEditor settings={this.state.settings} locked={locked} />
+            <SettingsEditor settings={settings} locked={locked} />
           </Nav>
 
           <Nav right onSelect={this.handleNavSelection}>
-            <LetterSetSelector settings={this.state.settings} locked={locked} />
+            <LetterSetSelector settings={settings} locked={locked} />
             <NavItem eventKey={1}><Icon name="qrcode" /></NavItem>
             <NavItem eventKey={2}><Icon name="refresh" /></NavItem>
           </Nav>
@@ -516,8 +516,8 @@ const App = React.createClass({
         </Navbar>
 
         <div style={{position: 'relative'}}>
-          <ColorOverlay color={this.state.settings.overlayColor} />
-          <LetterBoard {...this.state.settings} letters = {letters} />
+          <ColorOverlay color={settings.overlayColor} />
+          <LetterBoard {...settings} letters = {letters} />
         </div>
 
       </div>
