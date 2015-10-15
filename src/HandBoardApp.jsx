@@ -174,19 +174,12 @@ const Store = Reflux.createStore({
 
 });
 
+
 const CurrentLetter = React.createClass({
 
   mixins: [
     PureRenderMixin
   ],
-
-  styleSmall: {
-    fontSize: '10vh'
-  },
-
-  styleLarge: {
-    fontSize: '16vh'
-  },
 
   onTouchTap() {
     Actions.pause();
@@ -198,13 +191,12 @@ const CurrentLetter = React.createClass({
           small = (index % 2) === 1;
 
     const styleSmall = {
-      ...this.styleSmall,
+      fontSize: '60%',
       fontFamily: this.props.fontFamily,
       color: small ? 'black' : 'lightgrey'
     };
 
     const styleLarge = {
-      ...this.styleLarge,
       fontFamily: this.props.fontFamily,
       color: !small ? 'black' : 'lightgrey'
     };
@@ -237,7 +229,7 @@ const PlayButton = React.createClass({
     //Zero-width space ensures browsers such as Chrome on iOS
     //render this div with height as if it contains text
     return (
-      <div style={{fontSize: '16vh'}}>
+      <div>
         {'\u200B'}
         <Icon name="play"
               style={{cursor: 'pointer'}}
@@ -256,7 +248,7 @@ const WellDone = React.createClass({
 
   render: function() {
     return (
-      <div style={{fontSize: '16vh', color: 'green'}}>
+      <div style={{color: 'green'}}>
         <Icon name="check" />
       </div>
     );
@@ -349,9 +341,11 @@ const HandBoardApp = React.createClass({
 
   render: function() {
 
-    const progress = 100 * (this.state.letters.length - (
-      this.state.remainingLetters.length +
-      (this.state.currentLetter ? 1 : 0))) / this.state.letters.length;
+    const {letters, remainingLetters, currentLetter} = this.state,
+          count = letters.length,
+          remainingCount = remainingLetters.length,
+          progress = 100 * (count - (remainingCount + (currentLetter ? 1 : 0))) / count,
+          currentLetterSize = '18vh';
 
     return (
       <div>
@@ -386,7 +380,11 @@ const HandBoardApp = React.createClass({
 
 
         <div style={{margin: '0.5rem'}}>
-          <div style={{textAlign: 'center'}}>
+          <div style={{textAlign: 'center',
+                       fontSize: currentLetterSize,
+                       lineHeight: currentLetterSize,
+                       height: currentLetterSize
+                      }}>
             <If test={this.state.done}>
               <WellDone />
             </If>
@@ -398,7 +396,7 @@ const HandBoardApp = React.createClass({
                              fontFamily={this.state.fontFamily}/>
             </If>
           </div>
-          <div>
+          <div style={{marginTop: '0.5rem'}}>
             <LetterBoard letters={this.state.placedLetters}
                          fontFamily={this.state.fontFamily}
                          columnCount={this.state.columnCount}
