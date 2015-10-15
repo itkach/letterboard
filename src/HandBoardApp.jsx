@@ -92,11 +92,12 @@ const Store = Reflux.createStore({
   },
 
   onInitialize(data, force) {
+    this.stopTimer();
     let {letters, ...otherData} = data,
         currentLetters =  this.data.letters.join('');
     if (letters === currentLetters && !force) {
       console.debug('Already initialized for these letters', letters);
-      this.data = {...this.data, paused: true, fontFamily: data.fontFamily};
+      this.data = {...this.data, paused: true, done: false, fontFamily: data.fontFamily};
       return;
     }
     letters = letters.split('');
@@ -109,14 +110,13 @@ const Store = Reflux.createStore({
     for (let i = 0; i < count; i++) {
       placedLetters[i] = {char: letters[i], shown: false};
     }
-
     this.data = {...this.defaults, ...otherData, letters,
                  remainingLetters, placedLetters, paused: true};
     Actions.nextLetter();
   },
 
   onStart() {
-    this.data = {...this.data, elapsed: 0};
+    this.data = {...this.data, paused: false, elapsed: 0};
     Actions.resume();
   },
 
@@ -315,6 +315,7 @@ const HandBoardApp = React.createClass({
   },
 
   showConfirmReset() {
+    Actions.pause();
     this.setState({showConfirmReset: true});
   },
 
