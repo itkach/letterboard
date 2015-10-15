@@ -769,7 +769,9 @@ const App = React.createClass({
           <Nav right onSelect={this.handleNavSelection}>
             <LetterSetSelector settings={settings} locked={locked} />
             <NavItem eventKey={1}><Icon name="qrcode" /></NavItem>
-            <NavItem eventKey={2}><Icon name="tv" /></NavItem>
+            <If test={screenfull.enabled}>
+              <NavItem eventKey={2}><Icon name="tv" /></NavItem>
+            </If>
             <NavItem eventKey={3}><Icon name="refresh" /></NavItem>
           </Nav>
 
