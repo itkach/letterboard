@@ -14,6 +14,7 @@ import If from './If.jsx';
 
 import initTapEventPlugin from 'react-tap-event-plugin';
 import keymaster from 'keymaster';
+import screenfull from 'screenfull';
 
 import run from './run';
 
@@ -38,6 +39,20 @@ const Actions = Reflux.createActions([
   'nextLetter',
   'placeLetter'
 ]);
+
+
+Actions.resume.listen(() => {
+  if (screenfull.enabled) {
+    screenfull.request();
+  }
+});
+
+
+Actions.pause.listen(() => {
+  if (screenfull.enabled) {
+    screenfull.exit();
+  }
+});
 
 
 const Store = Reflux.createStore({
