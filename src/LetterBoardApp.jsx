@@ -3,6 +3,9 @@ import React from 'react';
 import Reflux from 'reflux';
 import keymaster from 'keymaster';
 import Icon from 'react-fontawesome';
+import uuid from 'uuid';
+import screenfull from 'screenfull';
+
 import LetterBoard from './LetterBoard.jsx';
 import QRCode from './QRCode.jsx';
 import If from './If.jsx';
@@ -21,8 +24,6 @@ import {
 
 import randomize from './randomize';
 import localstorage from './localstorage';
-import uuid from 'uuid';
-
 
 const Actions = Reflux.createActions([
   'setFontSize',
@@ -480,6 +481,12 @@ const App = React.createClass({
     Reflux.connect(Profiles, 'profiles')
   ],
 
+  getInitialState() {
+    return {
+      fullscreen: screenfull.enabled && screenfull.isFullscreen
+    };
+  },
+
   regenerate() {
     Actions.regenerate();
   },
@@ -579,7 +586,8 @@ const App = React.createClass({
     console.debug('nav selected', eventKey);
     return {
       1: this.showHandBoardQR,
-      2: Actions.regenerate
+      2: this.toggleFullScreen,
+      3: Actions.regenerate
     }[eventKey]();
   },
 
@@ -662,6 +670,15 @@ const App = React.createClass({
     }
   },
 
+  toggleFullScreen(e) {
+    if (e) {
+      e.preventDefault();
+    }
+    if (screenfull.enabled) {
+      screenfull.toggle(this.refs.letterboardContainer);
+    }
+  },
+
   componentDidMount() {
     keymaster('q', 'main', this.showHandBoardQR);
     keymaster('shift+r', 'main', Actions.regenerate);
@@ -673,7 +690,8 @@ const App = React.createClass({
     keymaster(';', 'main', this.decreaseLetterVSpacing);
     keymaster('c', 'main', this.nextOverlayColor);
     keymaster('l', 'main', this.nextLetterSet);
-    keymaster('f', 'main', this.nextFont);
+    keymaster('shift+f', 'main', this.nextFont);
+    keymaster('f', 'main', this.toggleFullScreen);
     keymaster('space', 'main', this.nextProfile);
     keymaster('shift+l', 'main', this.toggleProfileLock);
     keymaster('n', 'main', this.showSaveAsDialog);
@@ -681,6 +699,16 @@ const App = React.createClass({
     keymaster('enter', 'save-as-dialog', this.saveProfile);
     keymaster('enter', 'delete-confirmation-dialog', this.confirmDelete);
     keymaster.setScope('main');
+
+    if (screenfull.enabled) {
+      document.addEventListener(
+        screenfull.raw.fullscreenchange,
+        () => {
+          console.log('Yo! ', screenfull.isFullscreen);
+          this.setState({fullscreen: screenfull.isFullscreen});
+        }
+      );
+    }
   },
 
   getAvailableProfiles() {
@@ -696,7 +724,7 @@ const App = React.createClass({
   render: function() {
 
     const url = this.getHandBoardURL(),
-          {profiles, newProfileName, settings} = this.state,
+          {profiles, newProfileName, settings, fullscreen} = this.state,
           profileId = profiles.current,
           profile = profiles.available[profileId],
           availableProfiles = this.getAvailableProfiles(),
@@ -706,7 +734,7 @@ const App = React.createClass({
           letters = settings.letters.map(letter => ({char: letter, shown: true}));
 
     return (
-      <div>
+      <div style={{position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
 
         <OpenHandBoardDialog show={this.state.showQR}
                              url={url}
@@ -741,12 +769,17 @@ const App = React.createClass({
           <Nav right onSelect={this.handleNavSelection}>
             <LetterSetSelector settings={settings} locked={locked} />
             <NavItem eventKey={1}><Icon name="qrcode" /></NavItem>
-            <NavItem eventKey={2}><Icon name="refresh" /></NavItem>
+            <NavItem eventKey={2}><Icon name="tv" /></NavItem>
+            <NavItem eventKey={3}><Icon name="refresh" /></NavItem>
           </Nav>
 
         </Navbar>
 
-        <div style={{position: 'relative'}}>
+        <div ref="letterboardContainer"
+             style={{position: 'relative',
+                     width: fullscreen ? '100%' : 'auto',
+                     height: fullscreen ? '100%' : 'auto'
+                    }}>
           <ColorOverlay color={settings.overlayColor} />
           <LetterBoard {...settings} letters = {letters} />
         </div>
