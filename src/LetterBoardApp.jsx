@@ -41,6 +41,11 @@ const Actions = Reflux.createActions([
   'deleteProfile',
   'lockProfile',
   'unlockProfile',
+  'moveUp',
+  'moveDown',
+  'moveLeft',
+  'moveRight',
+  'resetPosition'
 ]);
 
 
@@ -159,6 +164,8 @@ const Store = Reflux.createStore({
       fontFamily: 'serif',
       background: {a: 1, r: 255, g: 255, b: 255},
       foreground: {a: 1, r: 0, g: 0, b: 0},
+      top: 0,
+      left: 0
     };
 
     this._onProfileChange(Profiles.getInitialState());
@@ -254,6 +261,30 @@ const Store = Reflux.createStore({
 
   onUnlockProfile() {
     this.data = {...this.data, locked: false};
+  },
+
+  onMoveUp() {
+    const {top} = this.data;
+    this.data = {...this.data, top: top - 1};
+  },
+
+  onMoveDown() {
+    const {top} = this.data;
+    this.data = {...this.data, top: top + 1};
+  },
+
+  onMoveLeft() {
+    const {left} = this.data;
+    this.data = {...this.data, left: left - 1};
+  },
+
+  onMoveRight() {
+    const {left} = this.data;
+    this.data = {...this.data, left: left + 1};
+  },
+
+  onResetPosition() {
+    this.data = {...this.data, top: 0, left: 0};
   }
 
 });
@@ -735,6 +766,12 @@ const App = React.createClass({
     keymaster('shift+d', 'main', this.showDeleteConfirmation);
     keymaster('enter', 'save-as-dialog', this.saveProfile);
     keymaster('enter', 'delete-confirmation-dialog', this.confirmDelete);
+    keymaster('up', 'main', Actions.moveUp);
+    keymaster('down', 'main', Actions.moveDown);
+    keymaster('left', 'main', Actions.moveLeft);
+    keymaster('right', 'main', Actions.moveRight);
+    keymaster('0', 'main', Actions.resetPosition);
+
     keymaster.setScope('main');
 
     if (screenfull.enabled) {
@@ -825,7 +862,12 @@ const App = React.createClass({
                      width: fullscreen ? '100%' : 'auto',
                      height: fullscreen ? '100%' : 'auto'
                     }}>
-          <LetterBoard {...settings} letters = {letters} />
+          <LetterBoard {...settings}
+                       letters = {letters}
+                       style={{position: 'relative',
+                               top: settings.top,
+                               left: settings.left}}
+          />
         </div>
 
       </div>
