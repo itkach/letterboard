@@ -5,11 +5,13 @@ import keymaster from 'keymaster';
 import Icon from 'react-fontawesome';
 import uuid from 'uuid';
 import screenfull from 'screenfull';
+import ColorPicker from 'react-color';
 
 import LetterBoard from './LetterBoard.jsx';
 import QRCode from './QRCode.jsx';
 import If from './If.jsx';
 import run from './run';
+
 
 import {
   Navbar,
@@ -31,13 +33,14 @@ const Actions = Reflux.createActions([
   'setLetterVSpacing',
   'setLetterHSpacing',
   'setLetterSet',
-  'setOverlayColor',
+  'setBackground',
+  'setForeground',
   'regenerate',
   'setProfile',
   'saveProfile',
   'deleteProfile',
   'lockProfile',
-  'unlockProfile'
+  'unlockProfile',
 ]);
 
 
@@ -140,13 +143,6 @@ const Store = Reflux.createStore({
     'monospace'
   ],
 
-  OVERLAY_COLORS: [
-    null,
-    'red',
-    'green',
-    'black'
-  ],
-
   listenables: Actions,
 
   init() {
@@ -161,7 +157,8 @@ const Store = Reflux.createStore({
       letterHSpacing: 0,
       letterVSpacing: 0,
       fontFamily: 'serif',
-      overlayColor: null
+      background: {a: 1, r: 255, g: 255, b: 255},
+      foreground: {a: 1, r: 0, g: 0, b: 0},
     };
 
     this._onProfileChange(Profiles.getInitialState());
@@ -237,11 +234,18 @@ const Store = Reflux.createStore({
     this.data = {...this.data, letterSet, letters};
   },
 
-  onSetOverlayColor(overlayColor) {
+  onSetBackground(background) {
     if (this.data.locked) {
       return;
     }
-    this.data = {...this.data, overlayColor};
+    this.data = {...this.data, background};
+  },
+
+  onSetForeground(foreground) {
+    if (this.data.locked) {
+      return;
+    }
+    this.data = {...this.data, foreground};
   },
 
   onLockProfile() {
@@ -266,28 +270,6 @@ const getAbsoluteURL = url => {
 
 
 const NBSP = '\u00A0';
-
-
-const OverlayToggleButton = ({color, disabled}) =>
-  <Button style={{backgroundColor: color, opacity: color ? 0.3 : null}}
-          onTouchTap={() => Actions.setOverlayColor(color)}
-          disabled={disabled}>
-    {NBSP}
-  </Button>
-;
-
-
-const ColorOverlay = ({color}) =>
-  <div style={{zIndex: 1000,
-               backgroundColor: color,
-               position: 'absolute',
-               top: 0,
-               bottom: 0,
-               left: 0,
-               right: 0,
-               opacity: 0.4,
-               width: '100%'}} />
-;
 
 
 const OpenHandBoardDialog = ({show, url, onHide, onOpenLink}) =>
@@ -375,15 +357,69 @@ const ProfileSelector = ({profiles, profileId, onChange}) =>
 ;
 
 
-const OverlayColorSelector = ({locked}) =>
-  <ButtonGroup>
-    {
-      Store.OVERLAY_COLORS.map(
-        x => <OverlayToggleButton key={x} color={x} disabled={locked} />
-      )
+const rgba = ({a, r, g, b}) => `rgba(${r}, ${g}, ${b}, ${a})`;
+
+class ColorButton extends React.Component {
+
+  constructor() {
+    super();
+    this.state = {
+      displayColorPicker: false,
+      color: {rgb: {a: 1, r: 255, g: 255, b: 255}}
+    };
+    this.handleClick = this.handleClick.bind(this);
+    this.handleClose = this.handleClose.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleClick() {
+    if (this.props.locked) {
+      return;
     }
-  </ButtonGroup>
-;
+    this.setState({ displayColorPicker: !this.state.displayColorPicker });
+  }
+
+  handleClose() {
+    this.setState({ displayColorPicker: false });
+  }
+
+  handleChange(color) {
+    console.debug('Change', color);
+    //this.setState({color});
+    this.props.onChange(color.rgb);
+  }
+
+  render() {
+
+    const color = rgba(this.props.value);
+
+    const styles = { color:
+                     {
+                       width: '20px',
+                       height: '100%',
+                       borderRadius: '2px',
+                       background: color
+                     },
+    };
+
+
+    return (
+      <div style={{display: 'inline-block', marginLeft: 2, marginRight: 2}}>
+        <div className="form-control" onClick={ this.handleClick }>
+          <div style={styles.color} />
+        </div>
+        <ColorPicker
+            color={color}
+            position="below"
+            display={this.state.displayColorPicker}
+            onChange={this.handleChange}
+            onClose={this.handleClose}
+            type="chrome" />
+      </div>
+    );
+  }
+}
+
 
 
 const SettingsEditor = ({settings, locked}) => {
@@ -415,7 +451,7 @@ const SettingsEditor = ({settings, locked}) => {
                label={<Icon name="font" />}
                             value={settings.fontFamily}
                             onChange={changeFontFamily}
-                            style={{marginLeft: 8, marginRight: 5}} >
+                            style={{marginLeft: 8, marginRight: 2}} >
         {Store.FONT_FAMILIES.map(x => <option key={x} value={x}>{x}</option>)}
         </Input>
 
@@ -424,7 +460,16 @@ const SettingsEditor = ({settings, locked}) => {
                value={settings.fontSize}
                onChange={changeFontSize}
                min="1"
-               style={labelStyle} />
+               style={{...labelStyle, marginLeft: 2, marginRight: 2}} />
+
+        <ButtonGroup style={{marginRight: 20}} >
+          <ColorButton value={settings.foreground}
+                       onChange={Actions.setForeground}
+                       locked={locked} />
+          <ColorButton value={settings.background}
+                       onChange={Actions.setBackground}
+                       locked={locked} />
+        </ButtonGroup>
 
 
         <Input type="number"
@@ -443,8 +488,6 @@ const SettingsEditor = ({settings, locked}) => {
                             onChange={changeLetterVSpacing}
                             min="0"
                             style={labelStyle} />
-
-        <OverlayColorSelector locked={locked} />
 
       </div>
     </form>
@@ -466,6 +509,7 @@ const LetterSetSelector = ({settings, locked}) =>
     </Input>
   </form>
 ;
+
 
 
 const profileComparator = (a, b) => {
@@ -602,12 +646,6 @@ const App = React.createClass({
     action(values[next]);
   },
 
-  nextOverlayColor() {
-    this.nextValue(Store.OVERLAY_COLORS,
-                   'overlayColor',
-                   Actions.setOverlayColor);
-  },
-
   nextLetterSet() {
     this.nextValue(Store.LETTER_SETS,
                    'letterSet',
@@ -688,7 +726,6 @@ const App = React.createClass({
     keymaster(',', 'main', this.decreaseLetterHSpacing);
     keymaster('\'', 'main', this.increaseLetterVSpacing);
     keymaster(';', 'main', this.decreaseLetterVSpacing);
-    keymaster('c', 'main', this.nextOverlayColor);
     keymaster('l', 'main', this.nextLetterSet);
     keymaster('shift+f', 'main', this.nextFont);
     keymaster('f', 'main', this.toggleFullScreen);
@@ -734,7 +771,10 @@ const App = React.createClass({
           letters = settings.letters.map(letter => ({char: letter, shown: true}));
 
     return (
-      <div style={{position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
+      <div style={{position: 'absolute',
+                   top: 0, bottom: 0, left: 0, right: 0,
+                   backgroundColor: rgba(settings.background)
+                  }}>
 
         <OpenHandBoardDialog show={this.state.showQR}
                              url={url}
@@ -769,9 +809,9 @@ const App = React.createClass({
           <Nav right onSelect={this.handleNavSelection}>
             <LetterSetSelector settings={settings} locked={locked} />
             <NavItem eventKey={1}><Icon name="qrcode" /></NavItem>
-            <If test={screenfull.enabled}>
-              <NavItem eventKey={2}><Icon name="tv" /></NavItem>
-            </If>
+            <NavItem eventKey={2} disabled={!screenfull.enabled}>
+              <Icon name="tv" />
+            </NavItem>
             <NavItem eventKey={3}><Icon name="refresh" /></NavItem>
           </Nav>
 
@@ -779,10 +819,12 @@ const App = React.createClass({
 
         <div ref="letterboardContainer"
              style={{position: 'relative',
+                     color: rgba(settings.foreground),
+                     //need to repeat bg color for fullscreen
+                     backgroundColor: rgba(settings.background),
                      width: fullscreen ? '100%' : 'auto',
                      height: fullscreen ? '100%' : 'auto'
                     }}>
-          <ColorOverlay color={settings.overlayColor} />
           <LetterBoard {...settings} letters = {letters} />
         </div>
 
