@@ -126,6 +126,21 @@ const Profiles = Reflux.createStore({
 });
 
 
+function ifUnlocked(target, key, descriptor) {
+  console.log(target, key, descriptor);
+  const newFunc = function() {
+    if (this.data.locked) {
+      return;
+    }
+    return descriptor.value.apply(this, arguments);
+  };
+  return {
+    ...descriptor,
+    value: newFunc
+  };
+}
+
+
 const Store = Reflux.createStore({
 
   LETTER_SETS: [
@@ -209,53 +224,39 @@ const Store = Reflux.createStore({
     this.set({letters: generate(this.data.letterSet)});
   },
 
+  @ifUnlocked
   onSetFontSize(fontSize) {
-    if (this.data.locked) {
-      return;
-    }
     this.set({fontSize});
   },
 
+  @ifUnlocked
   onSetFontFamily(fontFamily) {
-    if (this.data.locked) {
-      return;
-    }
     this.set({fontFamily});
   },
 
+  @ifUnlocked
   onSetLetterVSpacing(letterVSpacing) {
-    if (this.data.locked) {
-      return;
-    }
     this.set({letterVSpacing});
   },
 
+  @ifUnlocked
   onSetLetterHSpacing(letterHSpacing) {
-    if (this.data.locked) {
-      return;
-    }
     this.set({letterHSpacing});
   },
 
+  @ifUnlocked
   onSetLetterSet(letterSet) {
-    if (this.data.locked) {
-      return;
-    }
     const letters = generate(letterSet);
     this.set({letterSet, letters});
   },
 
+  @ifUnlocked
   onSetBackground(background) {
-    if (this.data.locked) {
-      return;
-    }
     this.set({background});
   },
 
+  @ifUnlocked
   onSetForeground(foreground) {
-    if (this.data.locked) {
-      return;
-    }
     this.set({foreground});
   },
 
@@ -267,26 +268,31 @@ const Store = Reflux.createStore({
     this.set({locked: false});
   },
 
+  @ifUnlocked
   onMoveUp(speed = 1) {
     const {top} = this.data;
     this.set({top: top - speed});
   },
 
+  @ifUnlocked
   onMoveDown(speed = 1) {
     const {top} = this.data;
     this.set({top: top + speed});
   },
 
+  @ifUnlocked
   onMoveLeft(speed = 1) {
     const {left} = this.data;
     this.set({left: left - speed});
   },
 
+  @ifUnlocked
   onMoveRight(speed = 1) {
     const {left} = this.data;
     this.set({left: left + speed});
   },
 
+  @ifUnlocked
   onResetPosition() {
     this.set({top: 0, left: 0});
   }
