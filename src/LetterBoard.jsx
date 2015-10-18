@@ -11,9 +11,7 @@ export default ({letters, columnCount, letterHSpacing, letterVSpacing,
     }
     event.preventDefault();
     console.debug('tap', rowIndex, colIndex);
-    if (onSelection) {
-      onSelection(rowIndex, colIndex);
-    }
+    onSelection(rowIndex, colIndex);
   };
 
 
@@ -27,7 +25,7 @@ export default ({letters, columnCount, letterHSpacing, letterVSpacing,
                          letters={rowLetters}
                          hSpacing={letterHSpacing || 0}
                          vSpacing={letterVSpacing || 0}
-                         onTouchTap={onRowTap.bind(this, i)}
+                         onTouchTap={onSelection ? onRowTap.bind(this, i) : null}
                          showBorder={showBorder}
               />);
   }
