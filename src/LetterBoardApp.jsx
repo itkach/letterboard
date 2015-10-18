@@ -190,6 +190,10 @@ const Store = Reflux.createStore({
     this.trigger(this._data);
   },
 
+  set(change) {
+    this.data = {...this.data, ...change};
+  },
+
   _onProfileChange(profiles) {
     console.debug('Profiles changed', profiles);
     this.profiles = profiles;
@@ -202,35 +206,35 @@ const Store = Reflux.createStore({
   },
 
   onRegenerate() {
-    this.data = {...this.data, letters: generate(this.data.letterSet)};
+    this.set({letters: generate(this.data.letterSet)});
   },
 
   onSetFontSize(fontSize) {
     if (this.data.locked) {
       return;
     }
-    this.data = {...this.data, fontSize};
+    this.set({fontSize});
   },
 
   onSetFontFamily(fontFamily) {
     if (this.data.locked) {
       return;
     }
-    this.data = {...this.data, fontFamily};
+    this.set({fontFamily});
   },
 
   onSetLetterVSpacing(letterVSpacing) {
     if (this.data.locked) {
       return;
     }
-    this.data = {...this.data, letterVSpacing};
+    this.set({letterVSpacing});
   },
 
   onSetLetterHSpacing(letterHSpacing) {
     if (this.data.locked) {
       return;
     }
-    this.data = {...this.data, letterHSpacing};
+    this.set({letterHSpacing});
   },
 
   onSetLetterSet(letterSet) {
@@ -238,53 +242,53 @@ const Store = Reflux.createStore({
       return;
     }
     const letters = generate(letterSet);
-    this.data = {...this.data, letterSet, letters};
+    this.set({letterSet, letters});
   },
 
   onSetBackground(background) {
     if (this.data.locked) {
       return;
     }
-    this.data = {...this.data, background};
+    this.set({background});
   },
 
   onSetForeground(foreground) {
     if (this.data.locked) {
       return;
     }
-    this.data = {...this.data, foreground};
+    this.set({foreground});
   },
 
   onLockProfile() {
-    this.data = {...this.data, locked: true};
+    this.set({locked: true});
   },
 
   onUnlockProfile() {
-    this.data = {...this.data, locked: false};
+    this.set({locked: false});
   },
 
   onMoveUp(speed = 1) {
     const {top} = this.data;
-    this.data = {...this.data, top: top - speed};
+    this.set({top: top - speed});
   },
 
   onMoveDown(speed = 1) {
     const {top} = this.data;
-    this.data = {...this.data, top: top + speed};
+    this.set({top: top + speed});
   },
 
   onMoveLeft(speed = 1) {
     const {left} = this.data;
-    this.data = {...this.data, left: left - speed};
+    this.set({left: left - speed});
   },
 
   onMoveRight(speed = 1) {
     const {left} = this.data;
-    this.data = {...this.data, left: left + speed};
+    this.set({left: left + speed});
   },
 
   onResetPosition() {
-    this.data = {...this.data, top: 0, left: 0};
+    this.set({top: 0, left: 0});
   }
 
 });
