@@ -263,24 +263,24 @@ const Store = Reflux.createStore({
     this.data = {...this.data, locked: false};
   },
 
-  onMoveUp() {
+  onMoveUp(speed = 1) {
     const {top} = this.data;
-    this.data = {...this.data, top: top - 1};
+    this.data = {...this.data, top: top - speed};
   },
 
-  onMoveDown() {
+  onMoveDown(speed = 1) {
     const {top} = this.data;
-    this.data = {...this.data, top: top + 1};
+    this.data = {...this.data, top: top + speed};
   },
 
-  onMoveLeft() {
+  onMoveLeft(speed = 1) {
     const {left} = this.data;
-    this.data = {...this.data, left: left - 1};
+    this.data = {...this.data, left: left - speed};
   },
 
-  onMoveRight() {
+  onMoveRight(speed = 1) {
     const {left} = this.data;
-    this.data = {...this.data, left: left + 1};
+    this.data = {...this.data, left: left + speed};
   },
 
   onResetPosition() {
@@ -766,10 +766,15 @@ const App = React.createClass({
     keymaster('shift+d', 'main', this.showDeleteConfirmation);
     keymaster('enter', 'save-as-dialog', this.saveProfile);
     keymaster('enter', 'delete-confirmation-dialog', this.confirmDelete);
-    keymaster('up', 'main', Actions.moveUp);
-    keymaster('down', 'main', Actions.moveDown);
-    keymaster('left', 'main', Actions.moveLeft);
-    keymaster('right', 'main', Actions.moveRight);
+    keymaster('up', 'main', () => Actions.moveUp(1));
+    keymaster('down', 'main', () => Actions.moveDown(1));
+    keymaster('left', 'main', () => Actions.moveLeft(1));
+    keymaster('right', 'main', () => Actions.moveRight(1));
+    keymaster('shift+up', 'main', () => Actions.moveUp(3));
+    keymaster('shift+down', 'main', () => Actions.moveDown(3));
+    keymaster('shift+left', 'main', () => Actions.moveLeft(3));
+    keymaster('shift+right', 'main', () => Actions.moveRight(3));
+
     keymaster('0', 'main', Actions.resetPosition);
 
     keymaster.setScope('main');
