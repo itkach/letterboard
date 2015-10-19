@@ -29,9 +29,15 @@ import localstorage from './localstorage';
 
 const Actions = Reflux.createActions([
   'setFontSize',
+  'decreaseFontSize',
+  'increaseFontSize',
   'setFontFamily',
   'setLetterVSpacing',
+  'decreaseLetterVSpacing',
+  'increaseLetterVSpacing',
   'setLetterHSpacing',
+  'decreaseLetterHSpacing',
+  'increaseLetterHSpacing',
   'setLetterSet',
   'setBackground',
   'setForeground',
@@ -41,6 +47,7 @@ const Actions = Reflux.createActions([
   'deleteProfile',
   'lockProfile',
   'unlockProfile',
+  'toggleProfileLock',
   'moveUp',
   'moveDown',
   'moveLeft',
@@ -226,7 +233,20 @@ const Store = Reflux.createStore({
 
   @ifUnlocked
   onSetFontSize(fontSize) {
+    if (fontSize < 1) {
+      fontSize = 1;
+    }
     this.set({fontSize});
+  },
+
+  onIncreaseFontSize() {
+    const {fontSize} = this.data;
+    Actions.setFontSize(fontSize + 1);
+  },
+
+  onDecreaseFontSize() {
+    const {fontSize} = this.data;
+    Actions.setFontSize(fontSize - 1);
   },
 
   @ifUnlocked
@@ -236,12 +256,35 @@ const Store = Reflux.createStore({
 
   @ifUnlocked
   onSetLetterVSpacing(letterVSpacing) {
+    if (letterVSpacing < 0) {
+      letterVSpacing = 0;
+    }
     this.set({letterVSpacing});
+  },
+
+  onIncreaseLetterVSpacing() {
+    const {letterVSpacing} = this.data;
+    Actions.setLetterVSpacing(letterVSpacing + 1);
+  },
+
+  onDecreaseLetterVSpacing() {
+    const {letterVSpacing} = this.data;
+    Actions.setLetterVSpacing(letterVSpacing - 1);
   },
 
   @ifUnlocked
   onSetLetterHSpacing(letterHSpacing) {
     this.set({letterHSpacing});
+  },
+
+  onIncreaseLetterHSpacing() {
+    const {letterHSpacing} = this.data;
+    Actions.setLetterHSpacing(letterHSpacing + 1);
+  },
+
+  onDecreaseLetterHSpacing() {
+    const {letterHSpacing} = this.data;
+    Actions.setLetterHSpacing(letterHSpacing - 1);
   },
 
   @ifUnlocked
@@ -267,6 +310,16 @@ const Store = Reflux.createStore({
   onUnlockProfile() {
     this.set({locked: false});
   },
+
+  onToggleProfileLock() {
+    if (this.data.locked) {
+      Actions.unlockProfile();
+    }
+    else {
+      Actions.lockProfile();
+    }
+  },
+
 
   @ifUnlocked
   onMoveUp(speed = 1) {
@@ -572,46 +625,6 @@ const App = React.createClass({
     };
   },
 
-  regenerate() {
-    Actions.regenerate();
-  },
-
-  increaseLetterVSpacing() {
-    const value = this.state.settings.letterVSpacing + 1;
-    Actions.setLetterVSpacing(value);
-  },
-
-  decreaseLetterVSpacing() {
-    const value = this.state.settings.letterVSpacing - 1;
-    if (value > 0) {
-      Actions.setLetterVSpacing(value);
-    }
-  },
-
-  increaseLetterHSpacing() {
-    const value = this.state.settings.letterHSpacing + 1;
-    Actions.setLetterHSpacing(value);
-  },
-
-  decreaseLetterHSpacing() {
-    const value = this.state.settings.letterHSpacing - 1;
-    if (value > 0) {
-      Actions.setLetterHSpacing(value);
-    }
-  },
-
-  increaseFontSize() {
-    const fontSize = this.state.settings.fontSize + 1;
-    Actions.setFontSize(fontSize);
-  },
-
-  decreaseFontSize() {
-    const fontSize = this.state.settings.fontSize - 1;
-    if (fontSize > 0) {
-      Actions.setFontSize(fontSize);
-    }
-  },
-
   changeProfile(e) {
     e.preventDefault();
     const selection = e.target.value;
@@ -737,18 +750,6 @@ const App = React.createClass({
     this.setState({newProfileName: ''});
   },
 
-  toggleProfileLock(e) {
-    if (e) {
-      e.preventDefault();
-    }
-    if (this.state.settings.locked) {
-      Actions.unlockProfile();
-    }
-    else {
-      Actions.lockProfile();
-    }
-  },
-
   toggleFullScreen(e) {
     if (e) {
       e.preventDefault();
@@ -761,17 +762,17 @@ const App = React.createClass({
   componentDidMount() {
     keymaster('q', 'main', this.showHandBoardQR);
     keymaster('shift+r', 'main', Actions.regenerate);
-    keymaster(']', 'main', this.increaseFontSize);
-    keymaster('[', 'main', this.decreaseFontSize);
-    keymaster('.', 'main', this.increaseLetterHSpacing);
-    keymaster(',', 'main', this.decreaseLetterHSpacing);
-    keymaster('\'', 'main', this.increaseLetterVSpacing);
-    keymaster(';', 'main', this.decreaseLetterVSpacing);
+    keymaster(']', 'main', Actions.increaseFontSize);
+    keymaster('[', 'main', Actions.decreaseFontSize);
+    keymaster('.', 'main', Actions.increaseLetterHSpacing);
+    keymaster(',', 'main', Actions.decreaseLetterHSpacing);
+    keymaster('\'', 'main', Actions.increaseLetterVSpacing);
+    keymaster(';', 'main', Actions.decreaseLetterVSpacing);
     keymaster('l', 'main', this.nextLetterSet);
     keymaster('shift+f', 'main', this.nextFont);
     keymaster('f', 'main', this.toggleFullScreen);
     keymaster('space', 'main', this.nextProfile);
-    keymaster('shift+l', 'main', this.toggleProfileLock);
+    keymaster('shift+l', 'main', Actions.toggleProfileLock);
     keymaster('n', 'main', this.showSaveAsDialog);
     keymaster('shift+d', 'main', this.showDeleteConfirmation);
     keymaster('enter', 'save-as-dialog', this.saveProfile);
@@ -847,7 +848,7 @@ const App = React.createClass({
 
         <Navbar fluid>
 
-          <Nav onSelect={(eventKey, event) => this.toggleProfileLock(event)}>
+          <Nav onSelect={Actions.toggleProfileLock}>
             <NavItem eventKey={1}><Icon name={locked ? "lock" : "unlock"}/></NavItem>
             <ProfileSelector profiles={availableProfiles}
                              profileId={profileId}
