@@ -179,116 +179,88 @@ const Store = Reflux.createStore({
 });
 
 
-const CurrentLetter = React.createClass({
+const CurrentLetter = ({letter, fontFamily}) => {
 
-  mixins: [
-    PureRenderMixin
-  ],
-
-  onTouchTap() {
-    Actions.pause();
-  },
-
-  render: function() {
-
-    const {char, index} = this.props.letter || {},
+    const {char, index} = letter || {},
           small = (index % 2) === 1;
 
     const styleSmall = {
       fontSize: '60%',
-      fontFamily: this.props.fontFamily,
+      fontFamily,
       color: small ? 'black' : 'lightgrey'
     };
 
     const styleLarge = {
-      fontFamily: this.props.fontFamily,
+      fontFamily,
       color: !small ? 'black' : 'lightgrey'
     };
 
     return (
       <div>
         <span style={{cursor: 'pointer'}}
-             onTouchTap={this.onTouchTap}>
+              onTouchTap={Actions.pause}>
           <span style={styleSmall}>{char}</span>
           <span style={styleLarge}>{char}</span>
         </span>
       </div>
     );
   }
-});
+;
 
 
+const PlayButton = () =>
+  //Zero-width space ensures browsers such as Chrome on iOS
+  //render this div with height as if it contains text
+  <div>
+    {'\u200B'}
+    <Icon
+        name="play"
+        style={{cursor: 'pointer'}}
+        onTouchTap={Actions.resume}
+    />
+  </div>
+;
 
-const PlayButton = React.createClass({
+const WellDone = () =>
+  <div style={{color: 'green'}}>
+    <Icon name="check" />
+  </div>
+;
 
-  mixins: [
-    PureRenderMixin
-  ],
 
-  onTouchTap() {
-    Actions.resume();
-  },
+const Elapsed = ({className, value}) => {
 
-  render: function() {
-    //Zero-width space ensures browsers such as Chrome on iOS
-    //render this div with height as if it contains text
-    return (
-      <div>
-        {'\u200B'}
-        <Icon name="play"
-              style={{cursor: 'pointer'}}
-              onTouchTap={this.onTouchTap} />
+  const dt = value,
+        minutes = Math.floor(dt / 60),
+        seconds = Math.floor(dt % 60),
+        pad = value => (value < 10 ? '0' : '') + value,
+        paddedMinutes = pad(minutes),
+        paddedSeconds = pad(seconds);
+  return (
+    <span style={{marginLeft: '0.5rem'}}
+          className={className}>
+      {paddedMinutes}:{paddedSeconds}
+    </span>
+  );
+};
+
+
+const ConfirmResetDialog = ({show, onHide, onConfirm}) =>
+  <Modal show={show} onHide={onHide}>
+    <Modal.Header closeButton>
+      <Modal.Title>Confirm Reset</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <div style={{textAlign: 'center'}}>
+        Are you sure you want to start over?
       </div>
-    );
-  }
-});
-
-
-const WellDone = React.createClass({
-
-  mixins: [
-    PureRenderMixin
-  ],
-
-  render: function() {
-    return (
-      <div style={{color: 'green'}}>
-        <Icon name="check" />
-      </div>
-    );
-  }
-});
-
-
-const Elapsed = React.createClass({
-
-  mixins: [
-    PureRenderMixin
-  ],
-
-  pad(value) {
-    return (value < 10 ? '0' : '') + value;
-  },
-
-  style: {
-    marginLeft: '0.5rem'
-  },
-
-  render: function() {
-
-    const dt = this.props.value,
-          minutes = Math.floor(dt / 60),
-          seconds = Math.floor(dt % 60),
-          paddedMinutes = this.pad(minutes),
-          paddedSeconds = this.pad(seconds);
-
-    return (
-      <span style={this.style} className={this.props.className}>
-        {paddedMinutes}:{paddedSeconds}
-      </span>
-    );
-  }
-});
+    </Modal.Body>
+    <Modal.Footer>
+      <Button onClick={onHide}>No</Button>
+      <Button onClick={onConfirm}>Yes</Button>
+    </Modal.Footer>
+  </Modal>
+;
 
 
 const HandBoardApp = React.createClass({
@@ -300,10 +272,6 @@ const HandBoardApp = React.createClass({
 
   componentDidMount() {
     this.reset();
-  },
-
-  nextLetter() {
-    Actions.nextLetter();
   },
 
   placeLetter(row, col) {
@@ -354,21 +322,11 @@ const HandBoardApp = React.createClass({
 
     return (
       <div>
-
-        <Modal show={this.state.showConfirmReset} onHide={this.hideConfirmReset}>
-          <Modal.Header closeButton>
-            <Modal.Title>Confirm Reset</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div style={{textAlign: 'center'}}>
-              Are you sure you want to start over?
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={this.hideConfirmReset}>No</Button>
-            <Button onClick={this.confirmReset}>Yes</Button>
-          </Modal.Footer>
-        </Modal>
+        <ConfirmResetDialog
+            show={this.state.showConfirmReset}
+            onHide={this.hideConfirmReset}
+            onConfirm={this.confirmReset}
+        />
 
         <Button onTouchTap={this.togglePause}
                 style={{position: 'absolute', margin: '0.5rem'}}>
@@ -424,33 +382,26 @@ const HandBoardApp = React.createClass({
 });
 
 
-const Root = React.createClass({
+const Root = () => {
 
-  mixins: [
-    PureRenderMixin
-  ],
+  const hash = window.location.hash;
 
-  render: function() {
-
-    const hash = window.location.hash;
-    if (hash) {
-      console.debug('hash', hash);
-      try {
-        const data = JSON.parse(decodeURIComponent(hash.substr(1)));
-        if (data) {
-          return <HandBoardApp initialData={data}/>;
-        }
-      }
-      catch (ex) {
-        console.error(ex);
+  if (hash) {
+    console.debug('hash', hash);
+    try {
+      const data = JSON.parse(decodeURIComponent(hash.substr(1)));
+      if (data) {
+        return <HandBoardApp initialData={data} />;
       }
     }
-
-    return (
-      <div>No valid init data given</div>
-    );
+    catch (ex) {
+      console.error(ex);
+    }
   }
-});
+
+  return <div>No valid init data given</div>;
+
+};
 
 
 run(Root);
