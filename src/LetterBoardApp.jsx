@@ -148,7 +148,7 @@ function ifUnlocked(target, key, descriptor) {
 }
 
 
-const Store = Reflux.createStore({
+const Settings = Reflux.createStore({
 
   LETTER_SETS: [
     'ABCDEFGHIJKLNOPRSTUVWXYZ',
@@ -546,7 +546,7 @@ const SettingsEditor = ({settings, locked}) => {
                             value={settings.fontFamily}
                             onChange={changeFontFamily}
                             style={{marginLeft: 8, marginRight: 2}} >
-        {Store.FONT_FAMILIES.map(x => <option key={x} value={x}>{x}</option>)}
+        {Settings.FONT_FAMILIES.map(x => <option key={x} value={x}>{x}</option>)}
         </Input>
 
         <Input type="number"
@@ -596,7 +596,7 @@ const LetterSetSelector = ({settings, locked}) =>
            value={settings.letterSet}
            onChange={e => Actions.setLetterSet(e.target.value)} >
       {
-        Store.LETTER_SETS.map(
+        Settings.LETTER_SETS.map(
           s => <option key={s} value={s}>{s.substr(0, 6)}</option>
         )
       }
@@ -615,7 +615,7 @@ const profileComparator = (a, b) => {
 const App = React.createClass({
 
   mixins: [
-    Reflux.connect(Store, 'settings'),
+    Reflux.connect(Settings, 'settings'),
     Reflux.connect(Profiles, 'profiles')
   ],
 
@@ -701,13 +701,13 @@ const App = React.createClass({
   },
 
   nextLetterSet() {
-    this.nextValue(Store.LETTER_SETS,
+    this.nextValue(Settings.LETTER_SETS,
                    'letterSet',
                    Actions.setLetterSet);
   },
 
   nextFont() {
-    this.nextValue(Store.FONT_FAMILIES,
+    this.nextValue(Settings.FONT_FAMILIES,
                    'fontFamily',
                    Actions.setFontFamily);
   },
