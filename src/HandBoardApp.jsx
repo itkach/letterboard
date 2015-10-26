@@ -91,13 +91,17 @@ const Store = Reflux.createStore({
     this.trigger(this._data);
   },
 
+  set(change) {
+    this.data = {...this.data, ...change};
+  },
+
   onInitialize(data, force) {
     this.stopTimer();
     let {letters, ...otherData} = data,
         currentLetters =  this.data.letters.join('');
     if (letters === currentLetters && !force) {
       console.debug('Already initialized for these letters', letters);
-      this.data = {...this.data, paused: true, done: false, fontFamily: data.fontFamily};
+      this.set({paused: true, done: false, fontFamily: data.fontFamily});
       return;
     }
     letters = letters.split('');
@@ -116,7 +120,7 @@ const Store = Reflux.createStore({
   },
 
   onStart() {
-    this.data = {...this.data, paused: false, elapsed: 0};
+    this.set({paused: false, elapsed: 0});
     Actions.resume();
   },
 
@@ -127,7 +131,7 @@ const Store = Reflux.createStore({
 
   onPause() {
     this.stopTimer();
-    this.data = {...this.data, paused: true};
+    this.set({paused: true});
   },
 
   onResume() {
@@ -135,10 +139,10 @@ const Store = Reflux.createStore({
       return;
     }
     this.interval = setInterval(
-      () => this.data = {...this.data, elapsed: this.data.elapsed + 1},
+      () => this.set({elapsed: this.data.elapsed + 1}),
       1000
     );
-    this.data = {...this.data, paused: false};
+    this.set({paused: false});
   },
 
   onNextLetter(override) {
@@ -154,7 +158,7 @@ const Store = Reflux.createStore({
     if (done) {
       this.stopTimer();
     }
-    this.data = {...this.data, currentLetter, remainingLetters, done, paused};
+    this.set({currentLetter, remainingLetters, done, paused});
   },
 
   onPlaceLetter(row, col) {
@@ -167,7 +171,7 @@ const Store = Reflux.createStore({
     console.debug('Selected index', index, 'should be', currentLetter.index);
     if (currentLetter.index === index) {
       placedLetters[index] = {char: currentLetter.char, shown: true};
-      this.data = {...this.data, placedLetters};
+      this.set({placedLetters});
       Actions.nextLetter(true);
     }
   }
