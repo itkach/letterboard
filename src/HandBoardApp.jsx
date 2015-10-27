@@ -2,42 +2,42 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'font-awesome/css/font-awesome.css';
 import './style.css';
 
-import React from 'react';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
-import Reflux from 'reflux';
 import Icon from 'react-fontawesome';
-
-import {randomInt} from './randomize';
-import localstorage from './localstorage';
-import LetterBoard from './LetterBoard.jsx';
-import If from './If.jsx';
-
+import Reflux from 'reflux';
 import initTapEventPlugin from 'react-tap-event-plugin';
-import keymaster from 'keymaster';
 import screenfull from 'screenfull';
-
-import run from './run';
 
 import {
   Button,
-  Modal
+  Modal,
+  Alert
 } from 'react-bootstrap';
+
+import Connect from './Connect.jsx';
+import If from './If.jsx';
+import LetterBoard from './LetterBoard.jsx';
+import localstorage from './localstorage';
+import run from './run';
+import {randomInt} from './randomize';
 
 
 initTapEventPlugin();
 
-keymaster.filter = () => true;
-
 
 const storage = localstorage('handboard');
+
 
 const Actions = Reflux.createActions([
   'initialize',
   'start',
   'pause',
+  'togglePause',
   'resume',
   'nextLetter',
-  'placeLetter'
+  'placeLetter',
+  'showConfirmReset',
+  'hideConfirmReset',
+  'confirmReset'
 ]);
 
 
@@ -75,6 +75,23 @@ const Store = Reflux.createStore({
   init() {
     const data = storage.get('state', {});
     this.data = {...this.defaults, ...data};
+
+    const hash = window.location.hash;
+
+    if (hash) {
+      try {
+        this.initialData = JSON.parse(decodeURIComponent(hash.substr(1)));
+        Actions.initialize(this.initialData);
+      }
+      catch (ex) {
+        console.error(ex);
+        this.set({letters: []});
+      }
+    }
+    else {
+      this.set({letters: []});
+    }
+
   },
 
   getInitialState() {
@@ -134,6 +151,18 @@ const Store = Reflux.createStore({
     this.set({paused: true});
   },
 
+  togglePause() {
+    if (this.data.done) {
+      return;
+    }
+    if (this.data.paused) {
+      Actions.resume();
+    }
+    else {
+      Actions.pause();
+    }
+  },
+
   onResume() {
     if (this.interval) {
       return;
@@ -162,6 +191,9 @@ const Store = Reflux.createStore({
   },
 
   onPlaceLetter(row, col) {
+    if (this.data.paused) {
+      return;
+    }
     if (!this.data.currentLetter) {
       return;
     }
@@ -174,6 +206,20 @@ const Store = Reflux.createStore({
       this.set({placedLetters});
       Actions.nextLetter(true);
     }
+  },
+
+  onHideConfirmReset() {
+    this.set({showConfirmReset: false});
+  },
+
+  onShowConfirmReset() {
+    Actions.pause();
+    this.set({showConfirmReset: true});
+  },
+
+  onConfirmReset() {
+    Actions.hideConfirmReset();
+    Actions.initialize(this.initialData, true);
   }
 
 });
@@ -221,6 +267,7 @@ const PlayButton = () =>
   </div>
 ;
 
+
 const WellDone = () =>
   <div style={{color: 'green'}}>
     <Icon name="check" />
@@ -245,8 +292,8 @@ const Elapsed = ({className, value}) => {
 };
 
 
-const ConfirmResetDialog = ({show, onHide, onConfirm}) =>
-  <Modal show={show} onHide={onHide}>
+const ConfirmResetDialog = ({show}) =>
+  <Modal show={show} onHide={Actions.hideConfirmReset}>
     <Modal.Header closeButton>
       <Modal.Title>Confirm Reset</Modal.Title>
     </Modal.Header>
@@ -256,152 +303,114 @@ const ConfirmResetDialog = ({show, onHide, onConfirm}) =>
       </div>
     </Modal.Body>
     <Modal.Footer>
-      <Button onClick={onHide}>No</Button>
-      <Button onClick={onConfirm}>Yes</Button>
+      <Button onClick={Actions.hideConfirmReset}>No</Button>
+      <Button onClick={Actions.confirmReset}>Yes</Button>
     </Modal.Footer>
   </Modal>
 ;
 
 
-const HandBoardApp = React.createClass({
-
-  mixins: [
-    PureRenderMixin,
-    Reflux.connect(Store)
-  ],
-
-  componentDidMount() {
-    this.reset();
-  },
-
-  placeLetter(row, col) {
-    if (this.state.paused) {
-      return;
-    }
-    console.debug('place letter', row, col);
-    Actions.placeLetter(row, col);
-  },
-
-  hideConfirmReset() {
-    this.setState({showConfirmReset: false});
-  },
-
-  showConfirmReset() {
-    Actions.pause();
-    this.setState({showConfirmReset: true});
-  },
-
-  reset(force = false) {
-    Actions.initialize(this.props.initialData, force);
-  },
-
-  confirmReset() {
-    this.hideConfirmReset();
-    this.reset(true);
-  },
-
-  togglePause() {
-    if (this.state.done) {
-      return;
-    }
-    if (this.state.paused) {
-      Actions.resume();
-    }
-    else {
-      Actions.pause();
-    }
-  },
-
-  render: function() {
-
-    const {letters, remainingLetters, currentLetter} = this.state,
-          count = letters.length,
-          remainingCount = remainingLetters.length,
-          progress = 100 * (count - (remainingCount + (currentLetter ? 1 : 0))) / count,
-          currentLetterSize = '18vh';
-
-    return (
-      <div>
-        <ConfirmResetDialog
-            show={this.state.showConfirmReset}
-            onHide={this.hideConfirmReset}
-            onConfirm={this.confirmReset}
-        />
-
-        <Button onTouchTap={this.togglePause}
-                style={{position: 'absolute', margin: '0.5rem'}}>
-          <If test={!this.state.done}>
-            <Icon name={this.state.paused ? 'play' : 'pause'} />
-          </If>
-           <Elapsed value={this.state.elapsed} />
-        </Button>
-
-        <Button onTouchTap={this.showConfirmReset}
-                style={{position: 'absolute', right: 0, margin: '0.5rem'}}>
-          <Icon name="refresh" />
-        </Button>
+const ButtonTogglePause = ({done, paused, elapsed}) =>
+  <Button onTouchTap={Actions.togglePause}
+          style={{position: 'absolute', margin: '0.5rem'}}>
+    <If test={!done}>
+      <Icon name={paused ? 'play' : 'pause'} />
+    </If>
+    <Elapsed value={elapsed} />
+  </Button>
+;
 
 
-        <div style={{margin: '0.5rem'}}>
-          <div style={{textAlign: 'center',
-                       fontSize: currentLetterSize,
-                       lineHeight: currentLetterSize,
-                       height: currentLetterSize
-                      }}>
-            <If test={this.state.done}>
-              <WellDone />
-            </If>
-            <If test={this.state.paused && !this.state.done}>
-              <PlayButton />
-            </If>
-            <If test={!this.state.paused}>
-              <CurrentLetter letter={this.state.currentLetter}
-                             fontFamily={this.state.fontFamily}/>
-            </If>
-          </div>
-          <div style={{marginTop: '0.5rem'}}>
-            <LetterBoard letters={this.state.placedLetters}
-                         fontFamily={this.state.fontFamily}
-                         columnCount={this.state.columnCount}
-                         onSelection={this.placeLetter}
-                         style={{width: '100%'}}
-                         fontSize='5vw'
-                         showBorder
-            />
-          </div>
-          <div style={{height: '0.5rem',
-                       width: '' + progress + '%',
-                       marginTop: '1rem',
-                       border: 'thin solid grey',
-                       backgroundColor: 'green'}}>
-          </div>
-        </div>
-      </div>
-    );
+const ButtonReset = () =>
+  <Button onTouchTap={Actions.showConfirmReset}
+          style={{position: 'absolute', right: 0, margin: '0.5rem'}}>
+    <Icon name="refresh" />
+  </Button>
+;
+
+
+const Progress = ({value}) =>
+  <div style={{height: '0.5rem',
+               width: `${value}%`,
+               marginTop: '1rem',
+               border: 'thin solid grey',
+               backgroundColor: 'green'}}>
+</div>
+;
+
+
+const CurrentLetterBox = ({size, children}) =>
+  <div style={{textAlign: 'center',
+               fontSize: size,
+               lineHeight: size,
+               height: size}} >
+    {children}
+  </div>
+;
+
+
+const HandBoardApp = (
+  {
+    letters,
+    placedLetters,
+    remainingLetters,
+    currentLetter,
+    fontFamily,
+    columnCount,
+    done,
+    paused,
+    elapsed,
+    showConfirmReset
   }
-});
+) => {
 
+  const count = letters.length,
+        remainingCount = remainingLetters.length,
+        progress = 100 * (count - (remainingCount + (currentLetter ? 1 : 0))) / count;
 
-const Root = () => {
-
-  const hash = window.location.hash;
-
-  if (hash) {
-    console.debug('hash', hash);
-    try {
-      const data = JSON.parse(decodeURIComponent(hash.substr(1)));
-      if (data) {
-        return <HandBoardApp initialData={data} />;
-      }
-    }
-    catch (ex) {
-      console.error(ex);
-    }
+  if (count === 0) {
+    return <Alert bsStyle="danger">No valid data given</Alert>;
   }
 
-  return <div>No valid init data given</div>;
+  return <div>
+    <ConfirmResetDialog show={showConfirmReset} />
 
+    <ButtonTogglePause {...{done, paused, elapsed}} />
+
+    <ButtonReset />
+
+    <div style={{margin: '0.5rem'}}>
+
+      <CurrentLetterBox size='18vh'>
+        <If test={done}>
+          <WellDone />
+        </If>
+        <If test={paused && !done}>
+          <PlayButton />
+        </If>
+        <If test={!paused}>
+          <CurrentLetter letter={currentLetter} fontFamily={fontFamily} />
+        </If>
+      </CurrentLetterBox>
+
+      <LetterBoard
+          columnCount={columnCount}
+          fontFamily={fontFamily}
+          fontSize='5vw'
+          letters={placedLetters}
+          onSelection={Actions.placeLetter}
+          showBorder
+          style={{width: '100%', marginTop: '0.5rem'}}
+      />
+
+      <Progress value={progress} />
+
+    </div>
+
+  </div>;
 };
 
 
-run(Root);
+run(
+  () => <Connect component={HandBoardApp} to={[[Store]]} />
+);
