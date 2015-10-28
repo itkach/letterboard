@@ -450,6 +450,13 @@ const ProfileSelector = ({profiles, profileId, onChange}) =>
 ;
 
 
+const ColorLabel = ({color}) =>
+  <div style={{width: '20px',
+               height: '100%',
+               borderRadius: '2px',
+               background: color}} />
+;
+
 const rgba = ({a, r, g, b}) => `rgba(${r}, ${g}, ${b}, ${a})`;
 
 class ColorButton extends React.Component {
@@ -477,8 +484,6 @@ class ColorButton extends React.Component {
   }
 
   handleChange(color) {
-    console.debug('Change', color);
-    //this.setState({color});
     this.props.onChange(color.rgb);
   }
 
@@ -486,20 +491,10 @@ class ColorButton extends React.Component {
 
     const color = rgba(this.props.value);
 
-    const styles = { color:
-                     {
-                       width: '20px',
-                       height: '100%',
-                       borderRadius: '2px',
-                       background: color
-                     },
-    };
-
-
     return (
       <div style={{display: 'inline-block', marginLeft: 2, marginRight: 2}}>
         <div className="form-control" onClick={ this.handleClick }>
-          <div style={styles.color} />
+          <ColorLabel color={color} />
         </div>
         <ColorPicker
             color={color}
