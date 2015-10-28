@@ -11,7 +11,7 @@ import LetterBoard from './LetterBoard.jsx';
 import QRCode from './QRCode.jsx';
 import If from './If.jsx';
 import run from './run';
-
+import Connect from './Connect.jsx';
 
 import {
   Navbar,
@@ -134,7 +134,6 @@ const Profiles = Reflux.createStore({
 
 
 function ifUnlocked(target, key, descriptor) {
-  console.log(target, key, descriptor);
   const newFunc = function() {
     if (this.data.locked) {
       return;
@@ -614,10 +613,6 @@ const profileComparator = (a, b) => {
 
 const App = React.createClass({
 
-  mixins: [
-    Reflux.connect(Settings, 'settings'),
-    Reflux.connect(Profiles, 'profiles')
-  ],
 
   getInitialState() {
     return {
@@ -666,8 +661,8 @@ const App = React.createClass({
   },
 
   getHandBoardURL() {
-    const letters = this.state.settings.letters.join(''),
-          fontFamily = this.state.settings.fontFamily;
+    const letters = this.props.settings.letters.join(''),
+          fontFamily = this.props.settings.fontFamily;
     return getAbsoluteURL('./handboard.html') + '#' +
            encodeURIComponent(JSON.stringify({letters, fontFamily}));
   },
@@ -695,7 +690,7 @@ const App = React.createClass({
   },
 
   nextValue(values, stateAttr, action) {
-    const current = values.indexOf(this.state.settings[stateAttr]),
+    const current = values.indexOf(this.props.settings[stateAttr]),
           next = current + 1 < values.length ? current + 1 : 0;
     action(values[next]);
   },
@@ -715,7 +710,7 @@ const App = React.createClass({
   nextProfile() {
     console.log('Next profile');
     const available = this.getAvailableProfiles(),
-          currentId = this.state.profiles.current;
+          currentId = this.props.profiles.current;
     available.every(([name, id], index, list) => {
       console.log(currentId, id, name);
       if (currentId === id) {
@@ -737,7 +732,7 @@ const App = React.createClass({
       e.preventDefault();
     }
     this.hideDeleteConfirmation();
-    Actions.deleteProfile(this.state.profiles.current);
+    Actions.deleteProfile(this.props.profiles.current);
   },
 
   saveProfile(e) {
@@ -793,16 +788,13 @@ const App = React.createClass({
     if (screenfull.enabled) {
       document.addEventListener(
         screenfull.raw.fullscreenchange,
-        () => {
-          console.log('Yo! ', screenfull.isFullscreen);
-          this.setState({fullscreen: screenfull.isFullscreen});
-        }
+        () => this.setState({fullscreen: screenfull.isFullscreen})
       );
     }
   },
 
   getAvailableProfiles() {
-    const asObj = this.state.profiles.available,
+    const asObj = this.props.profiles.available,
           result = [];
     for (let id of Object.keys(asObj)) {
       let name = asObj[id];
@@ -811,10 +803,11 @@ const App = React.createClass({
     return result.sort(profileComparator);
   },
 
-  render: function() {
+  render() {
 
     const url = this.getHandBoardURL(),
-          {profiles, newProfileName, settings, fullscreen} = this.state,
+          {profiles, settings} = this.props,
+          {newProfileName, fullscreen} = this.state,
           profileId = profiles.current,
           profile = profiles.available[profileId],
           availableProfiles = this.getAvailableProfiles(),
@@ -891,4 +884,11 @@ const App = React.createClass({
   }
 });
 
-run(App);
+const Root = () =>
+  <Connect
+      component={App}
+      to={[[Settings, 'settings'], [Profiles, 'profiles']]}
+  />
+;
+
+run(Root);
