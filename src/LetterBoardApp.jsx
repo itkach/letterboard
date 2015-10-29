@@ -27,11 +27,14 @@ import {
 import randomize from './randomize';
 import localstorage from './localstorage';
 
+const defaultKeyFilter = keymaster.filter;
+
 const Actions = Reflux.createActions([
   'setFontSize',
   'decreaseFontSize',
   'increaseFontSize',
   'setFontFamily',
+  'nextFont',
   'setLetterVSpacing',
   'decreaseLetterVSpacing',
   'increaseLetterVSpacing',
@@ -39,12 +42,19 @@ const Actions = Reflux.createActions([
   'decreaseLetterHSpacing',
   'increaseLetterHSpacing',
   'setLetterSet',
+  'nextLetterSet',
   'setBackground',
   'setForeground',
   'regenerate',
   'setProfile',
+  'nextProfile',
   'saveProfile',
+  'showSaveProfile',
+  'hideSaveProfile',
   'deleteProfile',
+  'showDeleteProfileConfirmation',
+  'hideDeleteProfileConfirmation',
+  'confirmDeleteProfile',
   'lockProfile',
   'unlockProfile',
   'toggleProfileLock',
@@ -52,11 +62,51 @@ const Actions = Reflux.createActions([
   'moveDown',
   'moveLeft',
   'moveRight',
-  'resetPosition'
+  'resetPosition',
+  'showHandBoardQR',
+  'hideHandBoardQR',
+  'openHandBoard',
+  'notifyFullScreen',
+  'toggleFullScreen'
 ]);
 
 
+keymaster('q', 'main', Actions.showHandBoardQR);
+keymaster('shift+r', 'main', Actions.regenerate);
+keymaster(']', 'main', Actions.increaseFontSize);
+keymaster('[', 'main', Actions.decreaseFontSize);
+keymaster('.', 'main', Actions.increaseLetterHSpacing);
+keymaster(',', 'main', Actions.decreaseLetterHSpacing);
+keymaster('\'', 'main', Actions.increaseLetterVSpacing);
+keymaster(';', 'main', Actions.decreaseLetterVSpacing);
+keymaster('l', 'main', Actions.nextLetterSet);
+keymaster('shift+f', 'main', Actions.nextFont);
+keymaster('f', 'main', Actions.toggleFullScreen);
+keymaster('space', 'main', Actions.nextProfile);
+keymaster('shift+l', 'main', Actions.toggleProfileLock);
+keymaster('n', 'main', Actions.showSaveProfile);
+keymaster('shift+d', 'main', Actions.showDeleteProfileConfirmation);
+keymaster('enter', 'delete-confirmation-dialog', Actions.confirmDeleteProfile);
+keymaster('up', 'main', () => Actions.moveUp(1));
+keymaster('down', 'main', () => Actions.moveDown(1));
+keymaster('left', 'main', () => Actions.moveLeft(1));
+keymaster('right', 'main', () => Actions.moveRight(1));
+keymaster('shift+up', 'main', () => Actions.moveUp(3));
+keymaster('shift+down', 'main', () => Actions.moveDown(3));
+keymaster('shift+left', 'main', () => Actions.moveLeft(3));
+keymaster('shift+right', 'main', () => Actions.moveRight(3));
+keymaster('0', 'main', Actions.resetPosition);
+keymaster.setScope('main');
+
+
 const storage = localstorage('letterboard');
+
+
+const getAbsoluteURL = url => {
+  const a = document.createElement('a');
+  a.href = url;
+  return a.href;
+};
 
 
 const generate = letterSet => {
@@ -86,13 +136,19 @@ const Profiles = Reflux.createStore({
     available: {[DEFAULT_PROFILE_ID]: 'Default'}
   },
 
+  profileComparator: (a, b) => {
+    const [aName] = a, [bName] = b;
+    return aName.localeCompare(bName);
+  },
+
   init() {
     const data = storage.get('profiles', {});
     this.data = {...this.defaults, ...data};
   },
 
   getInitialState() {
-    return this.data;
+    const profileNames = new Map(this.getSorted());
+    return {...this._data, profileNames};
   },
 
   get data() {
@@ -109,25 +165,83 @@ const Profiles = Reflux.createStore({
       this._data = newValue;
     }
     storage.set('profiles', this._data);
-    this.trigger(this._data);
+    const profileNames = new Map(this.getSorted());
+    this.trigger({...this._data, profileNames});
+  },
+
+  set(change) {
+    this.data = {...this.data, ...change};
   },
 
   onSetProfile(id) {
-    this.data = {...this.data, current: id};
+    this.set({current: id});
+  },
+
+  getSorted() {
+    const asObj = this.data.available,
+          result = [];
+    for (let id of Object.keys(asObj)) {
+      let name = asObj[id];
+      result.push([name, id]);
+    }
+    return result.sort(this.profileComparator);
+  },
+
+  onNextProfile() {
+    console.log('Next profile');
+    const currentId = this.data.current;
+    this.getSorted().every(([name, id], index, list) => {
+      console.log(currentId, id, name);
+      if (currentId === id) {
+        let next = index + 1 < list.length ? list[index + 1] : list[0],
+            nextId = next[1];
+        Actions.setProfile(nextId);
+        return false;
+      }
+      return true;
+    });
   },
 
   onSaveProfile(name, settings) {
+    Actions.hideSaveProfile();
     const id = uuid.v4();
     storage.set(profileStorageKey(id), settings);
     const available = {...this.data.available, [id]: name};
-    this.data = {...this.data, available, current: id};
+    this.set({available, current: id});
+  },
+
+  onShowSaveProfile() {
+    keymaster.filter = () => true;
+    keymaster.setScope('save-as-dialog');
+    this.set({showSaveProfile: true});
+  },
+
+  onHideSaveProfile() {
+    keymaster.filter = defaultKeyFilter;
+    keymaster.setScope('main');
+    this.set({showSaveProfile: false});
   },
 
   onDeleteProfile(id) {
     storage.remove(profileStorageKey(id));
     const available = {...this.data.available};
     delete available[id];
-    this.data = {...this.data, available, current: Object.keys(available)[0]};
+    this.set({available, current: Object.keys(available)[0]});
+  },
+
+  onShowDeleteProfileConfirmation() {
+    keymaster.setScope('delete-confirmation-dialog');
+    this.set({showDeleteProfileConfirmation: true});
+  },
+
+  onHideDeleteProfileConfirmation() {
+    keymaster.setScope('main');
+    this.set({showDeleteProfileConfirmation: false});
+  },
+
+  onConfirmDeleteProfile() {
+    Actions.hideDeleteProfileConfirmation();
+    Actions.deleteProfile(this.data.current);
   }
 
 });
@@ -186,7 +300,8 @@ const Settings = Reflux.createStore({
       background: {a: 1, r: 255, g: 255, b: 255},
       foreground: {a: 1, r: 0, g: 0, b: 0},
       top: 0,
-      left: 0
+      left: 0,
+      showQR: false
     };
 
     this._onProfileChange(Profiles.getInitialState());
@@ -223,7 +338,14 @@ const Settings = Reflux.createStore({
 
   loadCurrentProfile() {
     const data = storage.get(this.storageKey, {});
+    data.fullScreen = screenfull.enabled && screenfull.isFullscreen;
     this.data = {...this.defaults, ...data};
+  },
+
+  get handboardUrl() {
+    const {letters, fontFamily} = this.data;
+    return getAbsoluteURL('./handboard.html') + '#' +
+           encodeURIComponent(JSON.stringify({letters, fontFamily}));
   },
 
   onRegenerate() {
@@ -319,7 +441,6 @@ const Settings = Reflux.createStore({
     }
   },
 
-
   @ifUnlocked
   onMoveUp(speed = 1) {
     const {top} = this.data;
@@ -347,44 +468,84 @@ const Settings = Reflux.createStore({
   @ifUnlocked
   onResetPosition() {
     this.set({top: 0, left: 0});
+  },
+
+  onShowHandBoardQR() {
+    keymaster.setScope('open-handboard-dialog');
+    const handboardUrl = this.handboardUrl;
+    this.set({showQR: true, handboardUrl});
+  },
+
+  onHideHandBoardQR() {
+    keymaster.setScope('main');
+    this.set({showQR: false});
+  },
+
+  onOpenHandBoard() {
+    Actions.hideHandBoardQR();
+    window.open(this.handboardUrl);
+  },
+
+  nextValue(values, stateAttr, action) {
+    const current = values.indexOf(this.data[stateAttr]),
+          next = current + 1 < values.length ? current + 1 : 0;
+    action(values[next]);
+  },
+
+  onNextLetterSet() {
+    this.nextValue(this.LETTER_SETS,
+                   'letterSet',
+                   Actions.setLetterSet);
+  },
+
+  onNextFont() {
+    this.nextValue(this.FONT_FAMILIES,
+                   'fontFamily',
+                   Actions.setFontFamily);
+  },
+
+  onNotifyFullScreen(fullScreen) {
+    this.set({fullScreen});
   }
 
 });
 
 
-const defaultKeyFilter = keymaster.filter;
+if (screenfull.enabled) {
+  document.addEventListener(
+    screenfull.raw.fullscreenchange,
+    () => Actions.notifyFullScreen(screenfull.isFullscreen)
+  );
+}
+
+Actions.toggleFullScreen.listen(() => {
+  if (screenfull.enabled) {
+    screenfull.toggle();
+  }
+});
 
 
-const getAbsoluteURL = url => {
-  const a = document.createElement('a');
-  a.href = url;
-  return a.href;
-};
+const OpenHandBoardDialog = ({showQR, handboardUrl}) => {
 
-
-const NBSP = '\u00A0';
-
-
-const OpenHandBoardDialog = ({show, url, onHide, onOpenLink}) =>
-  <Modal show={show} onHide={onHide}>
+  return <Modal show={showQR} onHide={Actions.hideHandBoardQR}>
     <Modal.Header closeButton>
       <Modal.Title>Hand Board Link</Modal.Title>
     </Modal.Header>
     <Modal.Body>
       <div style={{textAlign: 'center'}}>
-        <QRCode size={'50vmin'} text={url} />
+        <QRCode size={'50vmin'} text={handboardUrl} />
       </div>
     </Modal.Body>
     <Modal.Footer>
-      <Button onClick={() => onOpenLink(url)}>Open Link</Button>
+      <Button onClick={() => Actions.openHandBoard()}>Open</Button>
     </Modal.Footer>
-  </Modal>
-;
+  </Modal>;
+};
 
 
-const DeleteConfirmationDialog = ({show, profile, onHide, onConfirm}) =>
+const DeleteConfirmationDialog = ({show, profile}) =>
   <Modal show={show}
-         onHide={onHide}>
+         onHide={Actions.hideDeleteProfileConfirmation}>
     <Modal.Header closeButton>
       <Modal.Title>Delete {profile}</Modal.Title>
     </Modal.Header>
@@ -394,21 +555,61 @@ const DeleteConfirmationDialog = ({show, profile, onHide, onConfirm}) =>
       </div>
     </Modal.Body>
     <Modal.Footer>
-      <Button onClick={onHide}>No</Button>
-      <Button bsStyle="danger" onClick={onConfirm}>Yes</Button>
+      <Button onClick={Actions.hideDeleteProfileConfirmation}>No</Button>
+      <Button bsStyle="danger" onClick={Actions.confirmDeleteProfile}>Yes</Button>
     </Modal.Footer>
   </Modal>
 ;
 
 
-const NewProfileDialog = ({show, name, exists, onChange, onHide, onSave}) =>
-  <Modal show={show} onHide={onHide}>
+class NewProfileDialog extends React.Component {
+
+  constructor() {
+    super();
+    this.updateName = this.updateName.bind(this);
+    this.save = this.save.bind(this);
+    this.state = {name: ''};
+  }
+
+  updateName(e) {
+    this.setState({name: e.target.value});
+  }
+
+  canSave() {
+    const name = this.state.name,
+          {profileNames} = this.props,
+          exists = profileNames.has(name);
+    return name && !exists;
+  }
+
+  save() {
+    if (this.canSave()) {
+      Actions.saveProfile(this.state.name, this.props.settings);
+      this.setState({name: ''});
+    }
+  }
+
+  componentWillMount() {
+    keymaster('enter', 'save-as-dialog', this.save);
+  }
+
+  componentWillUnmount() {
+    keymaster.unbind('enter');
+  }
+
+  render() {
+
+    const {name} = this.state,
+          {show, profileNames} = this.props,
+          exists = profileNames.has(name);
+
+    return   <Modal show={show} onHide={Actions.hideSaveProfile}>
     <Modal.Header closeButton>
       <Modal.Title>Create New Profile</Modal.Title>
     </Modal.Header>
     <Modal.Body>
       <div style={{textAlign: 'center'}}>
-        <Input type="text" autoFocus value={name} onChange={onChange} />
+        <Input type="text" autoFocus value={name} onChange={this.updateName} />
         <If test={exists}>
           <Alert bsStyle="danger">
             Profile <em>{name}</em> already exists
@@ -417,26 +618,41 @@ const NewProfileDialog = ({show, name, exists, onChange, onHide, onSave}) =>
       </div>
     </Modal.Body>
     <Modal.Footer>
-      <Button onClick={onHide}>Cancel</Button>
-      <Button bsStyle="success" onClick={onSave}
-              disabled={!name || exists}>
+      <Button onClick={Actions.hideSaveProfile}>Cancel</Button>
+      <Button bsStyle="success" onClick={this.save}
+              disabled={!this.canSave()}>
         Ok
       </Button>
     </Modal.Footer>
-  </Modal>
-;
+    </Modal>;
+  }
+}
 
 
-const ProfileSelector = ({profiles, profileId, onChange}) =>
-  <form className="navbar-form navbar-left"
+const ProfileSelector = ({profiles, profileId}) => {
+
+  const changeProfile = e => {
+    const selection = e.target.value;
+    if (selection === '_new') {
+      Actions.showSaveProfile();
+    }
+    else if (selection === '_delete'){
+      Actions.showDeleteProfileConfirmation();
+    }
+    else {
+      Actions.setProfile(selection);
+    }
+  };
+
+  return <form className="navbar-form navbar-left"
         style={{paddingLeft: 0, marginLeft: 0}}>
     <Input type="select"
            value={profileId}
-           onChange={onChange}
+           onChange={changeProfile}
            style={{marginLeft: 0}} >
     <optgroup label="Profiles">
       {
-        profiles.map(
+        Array.from(profiles).map(
           ([name, id]) => <option key={id} value={id}>{name}</option>
         )
       }
@@ -446,8 +662,8 @@ const ProfileSelector = ({profiles, profileId, onChange}) =>
       <option value="_delete">Delete...</option>
     </optgroup>
       </Input>
-  </form>
-;
+  </form>;
+};
 
 
 const ColorLabel = ({color}) =>
@@ -457,7 +673,9 @@ const ColorLabel = ({color}) =>
                background: color}} />
 ;
 
+
 const rgba = ({a, r, g, b}) => `rgba(${r}, ${g}, ${b}, ${a})`;
+
 
 class ColorButton extends React.Component {
 
@@ -507,7 +725,6 @@ class ColorButton extends React.Component {
     );
   }
 }
-
 
 
 const SettingsEditor = ({settings, locked}) => {
@@ -599,285 +816,67 @@ const LetterSetSelector = ({settings, locked}) =>
 ;
 
 
+const App = ({profiles, settings}) => {
 
-const profileComparator = (a, b) => {
-  const [aName] = a, [bName] = b;
-  return aName.localeCompare(bName);
+  const {fullScreen, locked} = settings,
+        profileId = profiles.current,
+        profile = profiles.available[profileId],
+        {profileNames} = profiles,
+        letters = settings.letters.map(letter => ({char: letter, shown: true}));
+
+  return <div style={{position: 'absolute',
+                      top: 0, bottom: 0, left: 0, right: 0,
+                      backgroundColor: rgba(settings.background)
+                     }}>
+
+    <OpenHandBoardDialog {...settings} />
+
+    <DeleteConfirmationDialog show={profiles.showDeleteProfileConfirmation}
+                              profile={profile} />
+
+    <NewProfileDialog show={profiles.showSaveProfile}
+                      profileNames={profileNames}
+                      settings={settings} />
+
+    <If test={!fullScreen}>
+      <Navbar fluid>
+
+        <Nav>
+          <NavItem onSelect={Actions.toggleProfileLock}>
+            <Icon name={locked ? "lock" : "unlock"}/>
+          </NavItem>
+          <ProfileSelector profiles={profileNames}
+                           profileId={profileId}/>
+        </Nav>
+
+        <Nav>
+          <SettingsEditor settings={settings} locked={locked} />
+        </Nav>
+
+        <Nav right>
+          <LetterSetSelector settings={settings} locked={locked} />
+          <NavItem onSelect={Actions.showHandBoardQR}><Icon name="qrcode" /></NavItem>
+          <NavItem onSelect={Actions.toggleFullScreen} disabled={!screenfull.enabled}>
+            <Icon name="tv" />
+          </NavItem>
+          <NavItem onSelect={Actions.regenerate}><Icon name="refresh" /></NavItem>
+        </Nav>
+
+      </Navbar>
+    </If>
+
+    <div style={{position: 'relative', color: rgba(settings.foreground)}}>
+      <LetterBoard {...settings}
+                   letters = {letters}
+                   style={{position: 'relative',
+                           top: settings.top,
+                           left: settings.left}}
+      />
+    </div>
+
+  </div>;
+
 };
-
-
-const App = React.createClass({
-
-
-  getInitialState() {
-    return {
-      fullscreen: screenfull.enabled && screenfull.isFullscreen
-    };
-  },
-
-  changeProfile(e) {
-    e.preventDefault();
-    const selection = e.target.value;
-    console.debug("Selected:", selection);
-    if (selection === '_new') {
-      this.showSaveAsDialog();
-    }
-    else if (selection === '_delete'){
-      this.showDeleteConfirmation();
-    }
-    else {
-      Actions.setProfile(selection);
-    }
-  },
-
-  showSaveAsDialog(e) {
-    if (e) {
-      e.preventDefault();
-    }
-    this.setState({showSaveAsDialog: true});
-    keymaster.filter = () => true;
-    keymaster.setScope('save-as-dialog');
-  },
-
-  hideSaveAsDialog() {
-    keymaster.filter = defaultKeyFilter;
-    keymaster.setScope('main');
-    this.setState({showSaveAsDialog: false});
-  },
-
-  showDeleteConfirmation() {
-    keymaster.setScope('delete-confirmation-dialog');
-    this.setState({showDeleteConfirmation: true});
-  },
-
-  hideDeleteConfirmation() {
-    keymaster.setScope('main');
-    this.setState({showDeleteConfirmation: false});
-  },
-
-  getHandBoardURL() {
-    const letters = this.props.settings.letters.join(''),
-          fontFamily = this.props.settings.fontFamily;
-    return getAbsoluteURL('./handboard.html') + '#' +
-           encodeURIComponent(JSON.stringify({letters, fontFamily}));
-  },
-
-  showHandBoardQR() {
-    this.setState({showQR: true});
-  },
-
-  hideHandBoardQR() {
-    this.setState({showQR: false});
-  },
-
-  handleNavSelection(eventKey){
-    console.debug('nav selected', eventKey);
-    return {
-      1: this.showHandBoardQR,
-      2: this.toggleFullScreen,
-      3: Actions.regenerate
-    }[eventKey]();
-  },
-
-  openHandBoardLink(url) {
-    this.hideHandBoardQR();
-    window.open(url);
-  },
-
-  nextValue(values, stateAttr, action) {
-    const current = values.indexOf(this.props.settings[stateAttr]),
-          next = current + 1 < values.length ? current + 1 : 0;
-    action(values[next]);
-  },
-
-  nextLetterSet() {
-    this.nextValue(Settings.LETTER_SETS,
-                   'letterSet',
-                   Actions.setLetterSet);
-  },
-
-  nextFont() {
-    this.nextValue(Settings.FONT_FAMILIES,
-                   'fontFamily',
-                   Actions.setFontFamily);
-  },
-
-  nextProfile() {
-    console.log('Next profile');
-    const available = this.getAvailableProfiles(),
-          currentId = this.props.profiles.current;
-    available.every(([name, id], index, list) => {
-      console.log(currentId, id, name);
-      if (currentId === id) {
-        let next = index + 1 < list.length ? list[index + 1] : list[0],
-            nextId = next[1];
-        Actions.setProfile(nextId);
-        return false;
-      }
-      return true;
-    });
-  },
-
-  setNewProfileName(e) {
-    this.setState({newProfileName: e.target.value});
-  },
-
-  confirmDelete(e) {
-    if (e) {
-      e.preventDefault();
-    }
-    this.hideDeleteConfirmation();
-    Actions.deleteProfile(this.props.profiles.current);
-  },
-
-  saveProfile(e) {
-    if (e) {
-      e.preventDefault();
-    }
-    this.hideSaveAsDialog();
-    const {newProfileName, settings} = this.state;
-    Actions.saveProfile(newProfileName, settings);
-    this.setState({newProfileName: ''});
-  },
-
-  toggleFullScreen(e) {
-    if (e) {
-      e.preventDefault();
-    }
-    if (screenfull.enabled) {
-      screenfull.toggle(this.refs.letterboardContainer);
-    }
-  },
-
-  componentDidMount() {
-    keymaster('q', 'main', this.showHandBoardQR);
-    keymaster('shift+r', 'main', Actions.regenerate);
-    keymaster(']', 'main', Actions.increaseFontSize);
-    keymaster('[', 'main', Actions.decreaseFontSize);
-    keymaster('.', 'main', Actions.increaseLetterHSpacing);
-    keymaster(',', 'main', Actions.decreaseLetterHSpacing);
-    keymaster('\'', 'main', Actions.increaseLetterVSpacing);
-    keymaster(';', 'main', Actions.decreaseLetterVSpacing);
-    keymaster('l', 'main', this.nextLetterSet);
-    keymaster('shift+f', 'main', this.nextFont);
-    keymaster('f', 'main', this.toggleFullScreen);
-    keymaster('space', 'main', this.nextProfile);
-    keymaster('shift+l', 'main', Actions.toggleProfileLock);
-    keymaster('n', 'main', this.showSaveAsDialog);
-    keymaster('shift+d', 'main', this.showDeleteConfirmation);
-    keymaster('enter', 'save-as-dialog', this.saveProfile);
-    keymaster('enter', 'delete-confirmation-dialog', this.confirmDelete);
-    keymaster('up', 'main', () => Actions.moveUp(1));
-    keymaster('down', 'main', () => Actions.moveDown(1));
-    keymaster('left', 'main', () => Actions.moveLeft(1));
-    keymaster('right', 'main', () => Actions.moveRight(1));
-    keymaster('shift+up', 'main', () => Actions.moveUp(3));
-    keymaster('shift+down', 'main', () => Actions.moveDown(3));
-    keymaster('shift+left', 'main', () => Actions.moveLeft(3));
-    keymaster('shift+right', 'main', () => Actions.moveRight(3));
-
-    keymaster('0', 'main', Actions.resetPosition);
-
-    keymaster.setScope('main');
-
-    if (screenfull.enabled) {
-      document.addEventListener(
-        screenfull.raw.fullscreenchange,
-        () => this.setState({fullscreen: screenfull.isFullscreen})
-      );
-    }
-  },
-
-  getAvailableProfiles() {
-    const asObj = this.props.profiles.available,
-          result = [];
-    for (let id of Object.keys(asObj)) {
-      let name = asObj[id];
-      result.push([name, id]);
-    }
-    return result.sort(profileComparator);
-  },
-
-  render() {
-
-    const url = this.getHandBoardURL(),
-          {profiles, settings} = this.props,
-          {newProfileName, fullscreen} = this.state,
-          profileId = profiles.current,
-          profile = profiles.available[profileId],
-          availableProfiles = this.getAvailableProfiles(),
-          profileNames = new Map(availableProfiles),
-          newProfileNameExists = profileNames.has(newProfileName),
-          locked = settings.locked,
-          letters = settings.letters.map(letter => ({char: letter, shown: true}));
-
-    return (
-      <div style={{position: 'absolute',
-                   top: 0, bottom: 0, left: 0, right: 0,
-                   backgroundColor: rgba(settings.background)
-                  }}>
-
-        <OpenHandBoardDialog show={this.state.showQR}
-                             url={url}
-                             onHide={this.hideHandBoardQR}
-                             onOpenLink={this.openHandBoardLink} />
-
-        <DeleteConfirmationDialog show={this.state.showDeleteConfirmation}
-                                  profile={profile}
-                                  onHide={this.hideDeleteConfirmation}
-                                  onConfirm={this.confirmDelete} />
-
-        <NewProfileDialog show={this.state.showSaveAsDialog}
-                          onHide={this.hideSaveAsDialog}
-                          name={newProfileName}
-                          exists={newProfileNameExists}
-                          onChange={this.setNewProfileName}
-                          onSave={this.saveProfile} />
-
-        <Navbar fluid>
-
-          <Nav onSelect={Actions.toggleProfileLock}>
-            <NavItem eventKey={1}><Icon name={locked ? "lock" : "unlock"}/></NavItem>
-            <ProfileSelector profiles={availableProfiles}
-                             profileId={profileId}
-                             onChange={this.changeProfile} />
-          </Nav>
-
-          <Nav>
-            <SettingsEditor settings={settings} locked={locked} />
-          </Nav>
-
-          <Nav right onSelect={this.handleNavSelection}>
-            <LetterSetSelector settings={settings} locked={locked} />
-            <NavItem eventKey={1}><Icon name="qrcode" /></NavItem>
-            <NavItem eventKey={2} disabled={!screenfull.enabled}>
-              <Icon name="tv" />
-            </NavItem>
-            <NavItem eventKey={3}><Icon name="refresh" /></NavItem>
-          </Nav>
-
-        </Navbar>
-
-        <div ref="letterboardContainer"
-             style={{position: 'relative',
-                     color: rgba(settings.foreground),
-                     //need to repeat bg color for fullscreen
-                     backgroundColor: rgba(settings.background),
-                     width: fullscreen ? '100%' : 'auto',
-                     height: fullscreen ? '100%' : 'auto'
-                    }}>
-          <LetterBoard {...settings}
-                       letters = {letters}
-                       style={{position: 'relative',
-                               top: settings.top,
-                               left: settings.left}}
-          />
-        </div>
-
-      </div>
-    );
-  }
-});
 
 const Root = () =>
   <Connect
