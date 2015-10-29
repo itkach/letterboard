@@ -348,7 +348,14 @@ const Settings = Reflux.createStore({
   get handboardUrl() {
     const {letters, fontFamily} = this.data;
     return getAbsoluteURL('./handboard.html') + '#' +
-           encodeURIComponent(JSON.stringify({letters, fontFamily}));
+           encodeURIComponent(
+             JSON.stringify(
+               {
+                 letters: letters.join(''),
+                 fontFamily
+               }
+             )
+           );
   },
 
   onRegenerate() {
