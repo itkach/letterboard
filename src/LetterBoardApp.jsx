@@ -96,6 +96,9 @@ keymaster('shift+down', 'main', () => Actions.moveDown(3));
 keymaster('shift+left', 'main', () => Actions.moveLeft(3));
 keymaster('shift+right', 'main', () => Actions.moveRight(3));
 keymaster('0', 'main', Actions.resetPosition);
+keymaster('o', 'open-handboard-dialog', Actions.openHandBoard);
+keymaster('q, space', 'open-handboard-dialog', Actions.hideHandBoardQR);
+
 keymaster.setScope('main');
 
 
