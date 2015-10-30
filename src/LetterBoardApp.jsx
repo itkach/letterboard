@@ -21,7 +21,8 @@ import {
   ButtonGroup,
   Input,
   Modal,
-  Alert
+  Alert,
+  Table
 } from 'react-bootstrap';
 
 import randomize from './randomize';
@@ -29,64 +30,72 @@ import localstorage from './localstorage';
 
 const defaultKeyFilter = keymaster.filter;
 
-const Actions = Reflux.createActions([
+const Actions = {'aaa': 1};
+
+const registerAction = info => {
+  let name, shortcuts, scope;
+  if (typeof info === 'string') {
+    name = info;
+  }
+  else {
+    [name, shortcuts, scope] = info;
+  }
+  const a = Reflux.createAction(name);
+  Actions[name] = a;
+  if (shortcuts) {
+    keymaster(shortcuts, scope, a);
+  }
+};
+
+
+const ActionInfo = [
   'setFontSize',
-  'decreaseFontSize',
-  'increaseFontSize',
+  ['decreaseFontSize', '[', 'main', 'Reduce letters size'],
+  ['increaseFontSize', ']', 'main', 'Increase letters size'],
   'setFontFamily',
-  'nextFont',
+  ['nextFont', 'shift+f', 'main', 'Select next font family'],
   'setLetterVSpacing',
-  'decreaseLetterVSpacing',
-  'increaseLetterVSpacing',
+  ['decreaseLetterVSpacing', ';', 'main', 'Deacrease vertical latter spacing'],
+  ['increaseLetterVSpacing', '\'', 'main', 'Increase vertical latter spacing'],
   'setLetterHSpacing',
-  'decreaseLetterHSpacing',
-  'increaseLetterHSpacing',
+  ['decreaseLetterHSpacing', ',', 'main', 'Decrease horizontal latter spacing'],
+  ['increaseLetterHSpacing', '.', 'main', 'Increase horizontal latter spacing'],
   'setLetterSet',
-  'nextLetterSet',
+  ['nextLetterSet', 'l', 'main', 'Select next letter set'],
   'setBackground',
   'setForeground',
-  'regenerate',
+  ['regenerate', 'shift+r', 'main', 'Generate new letter layout'],
   'setProfile',
-  'nextProfile',
+  ['nextProfile', 'space', 'main', 'Select next user profile'],
   'saveProfile',
-  'showSaveProfile',
+  ['showSaveProfile', 'n', 'main', 'Copy current user profile as new one'],
   'hideSaveProfile',
   'deleteProfile',
-  'showDeleteProfileConfirmation',
+  ['showDeleteProfileConfirmation', 'shift+d', 'main', 'Delete current user profile'],
   'hideDeleteProfileConfirmation',
-  'confirmDeleteProfile',
+  ['confirmDeleteProfile', 'enter', 'delete-confirmation-dialog'],
   'lockProfile',
   'unlockProfile',
-  'toggleProfileLock',
+  ['toggleProfileLock', 'shift+l', 'main',
+   'Lock/unlock user profile to prevent accidental changes'],
   'moveUp',
   'moveDown',
   'moveLeft',
   'moveRight',
   'resetPosition',
-  'showHandBoardQR',
+  ['showHandBoardQR', 'q', 'main', 'Show QR code for HandBoard URL'],
   'hideHandBoardQR',
   'openHandBoard',
   'notifyFullScreen',
-  'toggleFullScreen'
-]);
+  ['toggleFullScreen', 'f', 'main', 'Toggle full screen'],
+  ['showHelp', 'h, ?', 'main', 'Show help'],
+  'hideHelp'
+];
 
+ActionInfo.forEach(registerAction);
 
-keymaster('q', 'main', Actions.showHandBoardQR);
-keymaster('shift+r', 'main', Actions.regenerate);
-keymaster(']', 'main', Actions.increaseFontSize);
-keymaster('[', 'main', Actions.decreaseFontSize);
-keymaster('.', 'main', Actions.increaseLetterHSpacing);
-keymaster(',', 'main', Actions.decreaseLetterHSpacing);
-keymaster('\'', 'main', Actions.increaseLetterVSpacing);
-keymaster(';', 'main', Actions.decreaseLetterVSpacing);
-keymaster('l', 'main', Actions.nextLetterSet);
-keymaster('shift+f', 'main', Actions.nextFont);
-keymaster('f', 'main', Actions.toggleFullScreen);
-keymaster('space', 'main', Actions.nextProfile);
-keymaster('shift+l', 'main', Actions.toggleProfileLock);
-keymaster('n', 'main', Actions.showSaveProfile);
-keymaster('shift+d', 'main', Actions.showDeleteProfileConfirmation);
-keymaster('enter', 'delete-confirmation-dialog', Actions.confirmDeleteProfile);
+console.log(Actions);
+
 keymaster('up', 'main', () => Actions.moveUp(1));
 keymaster('down', 'main', () => Actions.moveDown(1));
 keymaster('left', 'main', () => Actions.moveLeft(1));
@@ -516,7 +525,18 @@ const Settings = Reflux.createStore({
 
   onNotifyFullScreen(fullScreen) {
     this.set({fullScreen});
+  },
+
+  onShowHelp() {
+    keymaster.setScope('help-dialog');
+    this.set({showHelp: true});
+  },
+
+  onHideHelp() {
+    keymaster.setScope('main');
+    this.set({showHelp: false});
   }
+
 
 });
 
@@ -826,6 +846,59 @@ const LetterSetSelector = ({settings, locked}) =>
 ;
 
 
+const KbdShortcut = ({text}) =>
+  <div style={{fontFamily: 'monospace', fontWeight: 'bold'}}>
+    {text}
+  </div>
+;
+
+const ShortcutInfoRow = ({info}) =>  {
+  const [name, shortcuts, scope, description] = info;
+  return <tr>
+    <td>
+      <KbdShortcut text={shortcuts} />
+    </td>
+    <td>
+      {description}
+    </td>
+  </tr>;
+};
+
+
+const Help = ({show}) =>
+  <Modal show={show}
+         onHide={Actions.hideHelp}>
+    <Modal.Header closeButton>
+      <Modal.Title>LetterBoard</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <div style={{textAlign: 'left'}}>
+        <Table striped condensed>
+          <thead>
+            <tr>
+              <th>
+                Shortcut
+              </th>
+              <th>
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+          {
+            ActionInfo
+           .filter(info => typeof info !== 'string' && info[3])
+           .map(info => <ShortcutInfoRow info={info} />)
+          }
+          </tbody>
+        </Table>
+      </div>
+    </Modal.Body>
+  </Modal>
+;
+
+
+
 const App = ({profiles, settings}) => {
 
   const {fullScreen, locked} = settings,
@@ -838,6 +911,8 @@ const App = ({profiles, settings}) => {
                       top: 0, bottom: 0, left: 0, right: 0,
                       backgroundColor: rgba(settings.background)
                      }}>
+
+    <Help show={settings.showHelp} />
 
     <OpenHandBoardDialog {...settings} />
 
@@ -870,6 +945,7 @@ const App = ({profiles, settings}) => {
             <Icon name="tv" />
           </NavItem>
           <NavItem onSelect={Actions.regenerate}><Icon name="refresh" /></NavItem>
+          <NavItem onSelect={Actions.showHelp}><Icon name="question" /></NavItem>
         </Nav>
 
       </Navbar>
