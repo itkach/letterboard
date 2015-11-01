@@ -88,7 +88,7 @@ const ActionInfo = [
   'openHandBoard',
   'notifyFullScreen',
   ['toggleFullScreen', 'f', 'main', 'Toggle full screen'],
-  ['showHelp', 'h, ?', 'main', 'Show help'],
+  ['showHelp', 'h, shift+/', 'main', 'Show help'],
   'hideHelp'
 ];
 
