@@ -1,5 +1,5 @@
 prod:
 	webpack -p
-	cp index.html handboard.html dist/
+	cp index.html handboard.html favicon* dist/
 dev:
 	npm run dev
