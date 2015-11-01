@@ -888,7 +888,7 @@ const Help = ({show}) =>
           {
             ActionInfo
            .filter(info => typeof info !== 'string' && info[3])
-           .map(info => <ShortcutInfoRow info={info} />)
+           .map(info => <ShortcutInfoRow key={info[0]} info={info} />)
           }
           </tbody>
         </Table>
