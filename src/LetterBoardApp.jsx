@@ -318,7 +318,8 @@ const Settings = Reflux.createStore({
       foreground: {a: 1, r: 0, g: 0, b: 0},
       top: 0,
       left: 0,
-      showQR: false
+      showQR: false,
+      showHelp: true
     };
 
     this._onProfileChange(Profiles.getInitialState());
