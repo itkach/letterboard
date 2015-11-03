@@ -41,6 +41,10 @@ module.exports = {
         loader: "expose?React"
       },
       {
+        test: /\.html$/,
+        loader: "html-loader"
+      },
+      {
         test:   /\.css$/,
         exclude: /\.useable\.css$/,
         loader: "style-loader!css-loader"

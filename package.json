@@ -39,6 +39,7 @@
     "eslint-plugin-react": "^3.5.1",
     "expose-loader": "^0.7.0",
     "file-loader": "^0.8.4",
+    "html-loader": "^0.3.0",
     "js-beautify": "^1.5.10",
     "style-loader": "~0.12.4",
     "webpack": "^1.12.2",

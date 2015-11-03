@@ -13,6 +13,9 @@ import If from './If.jsx';
 import run from './run';
 import Connect from './Connect.jsx';
 
+import LetterBoardDescription from './description.html';
+import LetterBoardTips from './tips.html';
+
 import {
   Navbar,
   Nav,
@@ -22,7 +25,9 @@ import {
   Input,
   Modal,
   Alert,
-  Table
+  Table,
+  Tabs,
+  Tab
 } from 'react-bootstrap';
 
 import randomize from './randomize';
@@ -847,7 +852,7 @@ const LetterSetSelector = ({settings, locked}) =>
 
 
 const KbdShortcut = ({text}) =>
-  <div style={{fontFamily: 'monospace', fontWeight: 'bold'}}>
+  <div className="kbd-shortcut">
     {text}
   </div>
 ;
@@ -865,34 +870,52 @@ const ShortcutInfoRow = ({info}) =>  {
 };
 
 
+const ShortcutInfo = () =>
+  <div style={{textAlign: 'left', paddingTop: '2rem'}}>
+    <Table striped condensed>
+      <thead>
+        <tr>
+          <th>
+            Shortcut
+          </th>
+          <th>
+            Action
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+           ActionInfo
+           .filter(info => typeof info !== 'string' && info[3])
+           .map(info => <ShortcutInfoRow key={info[0]} info={info} />)
+        }
+      </tbody>
+    </Table>
+  </div>
+;
+
 const Help = ({show}) =>
   <Modal show={show}
          onHide={Actions.hideHelp}>
     <Modal.Header closeButton>
-      <Modal.Title>LetterBoard</Modal.Title>
+      <Modal.Title>Letter Board</Modal.Title>
     </Modal.Header>
-    <Modal.Body>
-      <div style={{textAlign: 'left'}}>
-        <Table striped condensed>
-          <thead>
-            <tr>
-              <th>
-                Shortcut
-              </th>
-              <th>
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-          {
-            ActionInfo
-           .filter(info => typeof info !== 'string' && info[3])
-           .map(info => <ShortcutInfoRow key={info[0]} info={info} />)
-          }
-          </tbody>
-        </Table>
-      </div>
+    <Modal.Body style={{maxHeight: '80vh', overflowY: 'auto'}}>
+
+      <Tabs defaultActiveKey={1} animation={false}>
+        <Tab eventKey={1} title="Overview">
+          <div style={{paddingTop: '2rem'}}
+               dangerouslySetInnerHTML={{__html: LetterBoardDescription}} />
+        </Tab>
+        <Tab eventKey={2} title="Tips">
+          <div style={{paddingTop: '2rem'}}
+              dangerouslySetInnerHTML={{__html: LetterBoardTips}} />
+        </Tab>
+        <Tab eventKey={3} title="Shortcuts">
+          <ShortcutInfo />
+        </Tab>
+      </Tabs>
+
     </Modal.Body>
   </Modal>
 ;

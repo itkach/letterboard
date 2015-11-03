@@ -7,3 +7,8 @@ td:active {
     background-color: #eee;
     background-color: rgba(0, 0, 0, 0.1);
 }
+
+.kbd-shortcut {
+    font-family: monospace;
+    font-weight: bold;
+}
