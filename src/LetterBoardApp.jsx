@@ -897,7 +897,9 @@ const Help = ({show}) =>
       <Modal.Title>Letter Board</Modal.Title>
     </Modal.Header>
     <Modal.Body style={{maxHeight: '80vh', overflowY: 'auto'}}>
-
+      <a href="https://github.com/itkach/letterboard/" target="_blank">
+        <Icon name="github" size="2x" style={{float: 'right'}} />
+      </a>
       <Tabs defaultActiveKey={1} animation={false}>
         <Tab eventKey={1} title="Overview">
           <div style={{paddingTop: '2rem'}}
