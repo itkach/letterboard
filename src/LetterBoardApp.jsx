@@ -99,8 +99,6 @@ const ActionInfo = [
 
 ActionInfo.forEach(registerAction);
 
-console.log(Actions);
-
 keymaster('up', 'main', () => Actions.moveUp(1));
 keymaster('down', 'main', () => Actions.moveDown(1));
 keymaster('left', 'main', () => Actions.moveLeft(1));
@@ -205,10 +203,8 @@ const Profiles = Reflux.createStore({
   },
 
   onNextProfile() {
-    console.log('Next profile');
     const currentId = this.data.current;
     this.getSorted().every(([name, id], index, list) => {
-      console.log(currentId, id, name);
       if (currentId === id) {
         let next = index + 1 < list.length ? list[index + 1] : list[0],
             nextId = next[1];
@@ -349,7 +345,6 @@ const Settings = Reflux.createStore({
   },
 
   _onProfileChange(profiles) {
-    console.debug('Profiles changed', profiles);
     this.profiles = profiles;
     this.loadCurrentProfile();
   },
